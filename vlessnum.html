@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Текстовый Нумератор</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; line-height: 1.6; background-color: #f4f4f9; }
+        h2 { color: #333; }
+        .container { display: flex; flex-direction: column; gap: 15px; }
+        textarea { width: 100%; height: 150px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; font-family: monospace; }
+        .controls { display: flex; gap: 10px; align-items: center; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        input[type="text"] { padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex-grow: 1; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; transition: 0.3s; font-weight: bold; }
+        .btn-run { background-color: #4CAF50; color: white; }
+        .btn-run:hover { background-color: #45a049; }
+        .btn-copy { background-color: #008CBA; color: white; }
+        .btn-copy:hover { background-color: #007bb5; }
+        label { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>Инструмент нумерации строк</h2>
+
+    <div class="container">
+        <label>Исходный текст:</label>
+        <textarea id="inputBox" placeholder="Вставьте текст сюда..."></textarea>
+
+        <div class="controls">
+            <span>Искать (с конца):</span>
+            <input type="text" id="pattern" placeholder="Например, : или слово">
+            <button class="btn-run" onclick="processText()">Обработать</button>
+        </div>
+
+        <label>Результат:</label>
+        <textarea id="outputBox" readonly placeholder="Здесь появится результат..."></textarea>
+
+        <button class="btn-copy" onclick="copyToClipboard()">Копировать результат</button>
+    </div>
+
+    <script>
+        function processText() {
+            const input = document.getElementById('inputBox').value;
+            const searchStr = document.getElementById('pattern').value;
+            const outputBox = document.getElementById('outputBox');
+            
+            if (!searchStr) {
+                alert("Пожалуйста, введите символы для поиска в поле 'Замена'");
+                return;
+            }
+
+            const lines = input.split('\n');
+            const processedLines = lines.map((line, index) => {
+                // Находим последнее вхождение строки поиска
+                const lastIdx = line.lastIndexOf(searchStr);
+                
+                if (lastIdx === -1) return line; // Если совпадений нет, оставляем строку как есть
+
+                // Формируем счетчик: (номер + 1), добавляем 0 слева, если число меньше 10
+                const counter = String(index + 1).padStart(2, '0') + "-";
+                
+                // Разрезаем строку и вставляем счетчик
+                const before = line.substring(0, lastIdx + searchStr.length);
+                const after = line.substring(lastIdx + searchStr.length);
+                
+                return before + counter + after;
+            });
+
+            outputBox.value = processedLines.join('\n');
+        }
+
+        function copyToClipboard() {
+            const outputBox = document.getElementById('outputBox');
+            outputBox.select();
+            document.execCommand('copy');
+            
+            if (outputBox.value) {
+                alert("Текст скопирован в буфер обмена!");
+            }
+        }
+    </script>
+
+</body>
+</html>
