@@ -32,7 +32,6 @@
             margin-top: 4px;
         }
         
-        /* Стилизация системы табов (переключателей) без JavaScript */
         .tabs-container {
             display: block;
             width: 100%;
@@ -58,19 +57,16 @@
             transition: background 0.2s, color 0.2s;
         }
         
-        /* Прячем радио-инпуты */
         input[type="radio"].tab-switch {
             display: none !important;
         }
         
-        /* Логика переключения визуального фокуса на кнопках */
         #tab-meetings-input:checked ~ .tab-nav label[for="tab-meetings-input"],
         #tab-vks-input:checked ~ .tab-nav label[for="tab-vks-input"] {
             background: #1a3a5f;
             color: white;
         }
         
-        /* Логика отображения контента вкладок */
         .tab-content {
             display: none;
             width: 100%;
@@ -80,7 +76,6 @@
             display: block !important;
         }
 
-        /* Стили адаптивной таблицы-карточек */
         table {
             display: block !important;
             width: 100% !important;
@@ -98,21 +93,21 @@
             border-left: 4px solid #1a3a5f !important;
         }
         
-        /* Для ВКС делаем левую полоску другого цвета (например, темно-красного/бордового), чтобы визуально отличать */
         #vks-content tr {
             border-left: 4px solid #742a2a !important;
         }
 
-        td {
+        td, th {
             display: block !important;
             text-align: left !important;
             padding: 5px 0 !important;
             border: none !important;
             font-size: 14px !important;
+            font-weight: normal !important;
         }
-        td:not(:last-child) { border-bottom: 1px dashed #eee !important; }
+        td:not(:last-child), th:not(:last-child) { border-bottom: 1px dashed #eee !important; }
         
-        td::before {
+        td::before, th::before {
             content: attr(data-label);
             display: block !important;
             font-size: 11px !important;
@@ -122,8 +117,7 @@
             margin-bottom: 2px;
         }
         
-        /* Убираем все внешние отступы у блоков участников после удаления SVG */
-        .schedule-table__aponent {
+        .schedule-table__aponent, .b-calendar-meetings__table-cell p {
             margin: 0 !important;
             padding: 1px 0 !important;
             display: block !important;
@@ -139,7 +133,6 @@
             border-radius: 8px;
             color: #718096;
             font-size: 14px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
 
         a { color: #0056b3; text-decoration: none; font-weight: bold; }
@@ -749,7 +742,7 @@
                             Севостьянова Вера Павловна
                         </p></td> <td class="schedule-table__cell schedule-table__cell--place" data-label="Зал">5</td></tr><tr class="schedule-table__row"><td class="schedule-table__cell schedule-table__cell--time" data-label="Время">
                         10:20
-                        <span class="schedule-table__now">Идёт заседание</span></td> <td class="schedule-table__cell schedule-table__cell--link" data-label="Номер дела"><a class="schedule-table__link" href="https://kad.arbitr.ru/Card?number=А08-3279/2026" target="_blank">А08-3279/2026</a></td> <td class="schedule-table__cell" data-label="Заявитель/ответчик"><p class="schedule-table__aponent">
+                        </td> <td class="schedule-table__cell schedule-table__cell--link" data-label="Номер дела"><a class="schedule-table__link" href="https://kad.arbitr.ru/Card?number=А08-3279/2026" target="_blank">А08-3279/2026</a></td> <td class="schedule-table__cell" data-label="Заявитель/ответчик"><p class="schedule-table__aponent">
                             ООО "Элиткомпани"
                         </p><p class="schedule-table__aponent">
                             ООО "БЕЛГОРОДСКИЙ БРОЙЛЕР"
@@ -915,7 +908,7 @@
                             ООО "СТРОЙТРАНСАВТО №1"
                         </p></td> <td class="schedule-table__cell schedule-table__cell--place" data-label="Зал">17</td></tr><tr class="schedule-table__row"><td class="schedule-table__cell schedule-table__cell--time" data-label="Время">
                         10:40
-                        </td> <td class="schedule-table__cell schedule-table__cell--link" data-label="Номер дела"><a class="schedule-table__link" href="https://kad.arbitr.ru/Card?number=А08-12780/2024" target="_blank">А08-12780/2024</a></td> <td class="schedule-table__cell" data-label="Заявитель/ответчик"><p class="schedule-table__aponent">
+                        <span class="schedule-table__now">Идёт заседание</span></td> <td class="schedule-table__cell schedule-table__cell--link" data-label="Номер дела"><a class="schedule-table__link" href="https://kad.arbitr.ru/Card?number=А08-12780/2024" target="_blank">А08-12780/2024</a></td> <td class="schedule-table__cell" data-label="Заявитель/ответчик"><p class="schedule-table__aponent">
                             ООО "БЕЛСПЕЦ"
                         </p><p class="schedule-table__aponent">
                             Струков Сергей Михайлович
@@ -1618,7 +1611,7 @@
                         </p></td> <td class="schedule-table__cell schedule-table__cell--place" data-label="Зал">6</td></tr></table>
             </div>
             <div id="vks-content" class="tab-content">
-                <div class='no-data'>Ошибка при загрузке расписания ВКС с сервера суда.</div>
+                <div class='no-data'>Данные расписания на сегодня отсутствуют или не загрузились.</div>
             </div>
         </div>
     </div>
