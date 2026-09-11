@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор QR-кода для оплаты</title>
+    <title>Генератор QR-кода для оплаты в казначейство</title>
     
-    <!-- Подключаем проверенную библиотеку через CDN -->
+    <!-- Подключаем библиотеку QR-кода -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     
     <style>
@@ -24,7 +24,7 @@
             padding: 25px; 
             border-radius: 16px; 
             box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
-            max-width: 420px; 
+            max-width: 480px; 
             width: 100%;
             align-self: flex-start;
         }
@@ -32,7 +32,7 @@
             color: #1a73e8; 
             text-align: center; 
             margin-top: 0; 
-            font-size: 22px; 
+            font-size: 20px; 
             margin-bottom: 20px; 
         }
         .form-group { margin-bottom: 15px; }
@@ -43,7 +43,7 @@
             margin-bottom: 5px; 
             color: #333; 
         }
-        input { 
+        input, select { 
             width: 100%; 
             padding: 10px 12px; 
             border: 1px solid #d1d5db; 
@@ -51,7 +51,7 @@
             font-size: 15px; 
             transition: border-color 0.2s; 
         }
-        input:focus { 
+        input:focus, select:focus { 
             border-color: #1a73e8; 
             outline: none; 
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); 
@@ -97,7 +97,7 @@
         }
         #qrcode svg { max-width: 100%; height: auto; }
         .note { 
-            font-size: 12px; 
+            font-size: 11px; 
             color: #6b7280; 
             text-align: center; 
             margin-top: 15px; 
@@ -117,37 +117,83 @@
             font-size: 13px; 
             text-align: center; 
             margin-top: 10px;
+            padding: 8px;
+            background: #fef2f2;
+            border-radius: 6px;
         }
         .success-msg { 
             color: #059669; 
             font-size: 13px; 
             text-align: center; 
             margin-top: 10px;
+            padding: 8px;
+            background: #f0fdf4;
+            border-radius: 6px;
+        }
+        .info-block {
+            background: #eff6ff;
+            border-left: 4px solid #1a73e8;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .info-block h4 {
+            margin: 0 0 8px 0;
+            color: #1e40af;
+            font-size: 13px;
+        }
+        .info-block ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .info-block li {
+            margin-bottom: 4px;
+        }
+        .warning {
+            background: #fffbeb;
+            border-left-color: #f59e0b;
+        }
+        .warning h4 {
+            color: #92400e;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>💳 Оплата по QR-коду</h2>
+    <h2>💳 Оплата в казначейство</h2>
     
     <div class="requisites-info" id="requisitesInfo">
         Загрузка реквизитов...
     </div>
 
     <div class="form-group">
-        <label for="sum">Сумма платежа (₽):</label>
+        <label for="npaCode">Код НПА (нормативного акта): <span style="color: #dc2626;">*</span></label>
+        <select id="npaCode" required>
+            <option value="">— Выберите код НПА —</option>
+            <option value="0002">0002</option>
+            <option value="0038">0038</option>
+            <option value="0028">0028</option>
+            <option value="0026">0026</option>
+            <option value="0030">0030</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="sum">Сумма платежа (₽): <span style="color: #dc2626;">*</span></label>
         <input type="number" id="sum" placeholder="Например: 1500.50" step="0.01" min="0.01">
     </div>
     
     <div class="form-group">
-        <label for="payerName">ФИО плательщика:</label>
+        <label for="payerName">ФИО плательщика: <span style="color: #dc2626;">*</span></label>
         <input type="text" id="payerName" placeholder="Иванов Иван Иванович">
     </div>
     
     <div class="form-group">
         <label for="purpose">Назначение платежа:</label>
-        <input type="text" id="purpose" placeholder="Например: Оплата по счету №123">
+        <input type="text" id="purpose" placeholder="Например: Оплата по договору №123">
     </div>
     
     <button id="generateBtn" onclick="generateQR()">Сформировать QR-код</button>
@@ -161,19 +207,37 @@
         <div class="note">Отсканируйте этот код в приложении любого банка<br>(СберБанк, Тинькофф, Альфа и др.)<br>Стандарт: ГОСТ Р 56042-2014</div>
     </div>
 
+    <!-- Информация о том, где указывать код НПА -->
+    <div class="info-block">
+        <h4>📋 Где указывать код НПА при оплате:</h4>
+        <ul>
+            <li><b>Платежное поручение</b> — поле «22»</li>
+            <li><b>Объявление на взнос наличными</b> (форма 0402001) — реквизит «Источник поступления»</li>
+            <li><b>Банкомат / пункт выдачи наличных</b> — реквизит «код цели (аналитический код)»</li>
+        </ul>
+    </div>
+
+    <div class="info-block warning">
+        <h4>️ Важная информация:</h4>
+        <ul>
+            <li><b>Депозитный счет НЕ ИМЕЕТ реквизита КБК</b> — это не бюджетный счет</li>
+            <li>При запросе КБК указывайте <b>«0»</b></li>
+        </ul>
+    </div>
+
     <button class="btn-secondary" onclick="downloadSelf()">💾 Скачать этот генератор как HTML-файл</button>
 </div>
 
 <script>
 // =====================================================================
-// 1. РЕКВИЗИТЫ ПОЛУЧАТЕЛЯ — ИЗМЕНИТЕ ПОД СЕБЯ
+// 1. РЕКВИЗИТЫ КАЗНАЧЕЙСТВА — ИЗМЕНИТЕ ПОД СЕБЯ
 // =====================================================================
 const REQUISITES = {
-    name: 'ООО «Тестовая Компания»',
-    acc: '40702810938000000045',
-    bank: 'ПАО СБЕРБАНК',
-    bic: '044525225',
-    corAcc: '30101810400000000225',
+    name: 'УФК по г. Москве (ИФНС России №46 по г. Москве)',
+    acc: '40302810900000010045',
+    bank: 'ГУ БАНКА РОССИИ ПО ЦФО//УФК ПО Г. МОСКВЕ Г. МОСКВА',
+    bic: '004525987',
+    corAcc: '40102810545370000001',
     inn: '7704400000',
     kpp: '770401001'
 };
@@ -202,34 +266,57 @@ function generateQR() {
     const messageBox = document.getElementById('messageBox');
     messageBox.innerHTML = '';
     
+    const npaCode = document.getElementById('npaCode').value.trim();
     const sumVal = document.getElementById('sum').value.trim();
     const payerName = document.getElementById('payerName').value.trim();
     const purpose = document.getElementById('purpose').value.trim();
 
     // Валидация
+    if (!npaCode) {
+        messageBox.innerHTML = '<div class="error-msg">⚠️ Выберите код НПА из списка</div>';
+        return;
+    }
+    
     if (!sumVal || isNaN(parseFloat(sumVal)) || parseFloat(sumVal) <= 0) {
         messageBox.innerHTML = '<div class="error-msg">⚠️ Введите корректную сумму платежа</div>';
+        return;
+    }
+    
+    if (!payerName) {
+        messageBox.innerHTML = '<div class="error-msg">⚠️ Введите ФИО плательщика</div>';
         return;
     }
 
     // Формирование строки по ГОСТ Р 56042-2014
     const sumInKopecks = Math.round(parseFloat(sumVal) * 100);
     
+    // Основная строка QR-кода
     let qrString = `ST00012|Name=${REQUISITES.name}|PersonalAcc=${REQUISITES.acc}|BankName=${REQUISITES.bank}|BIC=${REQUISITES.bic}|CorrespAcc=${REQUISITES.corAcc}|PayeeINN=${REQUISITES.inn}`;
     
+    // Добавляем КПП если есть
     if (REQUISITES.kpp) {
         qrString += `|KPP=${REQUISITES.kpp}`;
     }
+    
+    // Добавляем код НПА в поле DocIdx (индекс документа)
+    qrString += `|DocIdx=${npaCode}`;
+    
+    // Добавляем ФИО плательщика
     if (payerName) {
         qrString += `|LastName=${payerName}`;
     }
+    
+    // Добавляем назначение платежа
     if (purpose) {
         qrString += `|Purpose=${purpose}`;
     }
+    
+    // Добавляем сумму в копейках
     qrString += `|Sum=${sumInKopecks}`;
 
-    console.log(' Строка для QR:', qrString);
+    console.log('📝 Строка для QR:', qrString);
     console.log('📏 Длина строки:', qrString.length, 'символов');
+    console.log('🔢 Код НПА:', npaCode);
 
     // Очистка контейнера
     const container = document.getElementById("qrcode");
@@ -246,13 +333,18 @@ function generateQR() {
         const svgTag = qr.createSvgTag(4, 0);
         container.innerHTML = svgTag;
         
-        messageBox.innerHTML = '<div class="success-msg">✅ QR-код успешно сформирован!</div>';
+        messageBox.innerHTML = `
+            <div class="success-msg">✅ QR-код успешно сформирован!</div>
+            <div style="font-size: 11px; color: #6b7280; margin-top: 8px; text-align: center;">
+                Код НПА: <b>${npaCode}</b> | Сумма: <b>${sumVal} ₽</b>
+            </div>
+        `;
         console.log('✅ QR-код сгенерирован');
         
     } catch (e) {
         container.innerHTML = '<span style="color:red; font-size:14px;">Ошибка генерации QR-кода</span>';
         messageBox.innerHTML = `<div class="error-msg">❌ Ошибка: ${e.message}</div>`;
-        console.error('❌ Ошибка:', e);
+        console.error(' Ошибка:', e);
     }
 }
 
@@ -264,7 +356,7 @@ function downloadSelf() {
     const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "QR_Oplata.html";
+    a.download = "QR_Kaznacheystvo.html";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
