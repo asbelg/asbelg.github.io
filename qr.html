@@ -4,23 +4,126 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор QR-кода для оплаты</title>
+    
+    <!-- Подключаем проверенную библиотеку через CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: #f0f2f5; padding: 20px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
-        .container { background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); max-width: 420px; width: 100%; }
-        h2 { color: #1a73e8; text-align: center; margin-top: 0; font-size: 22px; margin-bottom: 20px; }
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            background: #fff; 
+            padding: 25px; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
+            max-width: 420px; 
+            width: 100%;
+            align-self: flex-start;
+        }
+        h2 { 
+            color: #1a73e8; 
+            text-align: center; 
+            margin-top: 0; 
+            font-size: 22px; 
+            margin-bottom: 20px; 
+        }
         .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #333; }
-        input { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: border-color 0.2s; }
-        input:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); }
-        button { width: 100%; padding: 14px; background-color: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        label { 
+            display: block; 
+            font-size: 13px; 
+            font-weight: 600; 
+            margin-bottom: 5px; 
+            color: #333; 
+        }
+        input { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 8px; 
+            font-size: 15px; 
+            transition: border-color 0.2s; 
+        }
+        input:focus { 
+            border-color: #1a73e8; 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); 
+        }
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #1a73e8; 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: background 0.2s; 
+        }
         button:hover { background-color: #1557b0; }
-        .btn-secondary { background-color: #f3f4f6; color: #374151; margin-top: 10px; font-size: 14px; padding: 10px; }
+        button:disabled { background-color: #9ca3af; cursor: not-allowed; }
+        .btn-secondary { 
+            background-color: #f3f4f6; 
+            color: #374151; 
+            margin-top: 10px; 
+            font-size: 14px; 
+            padding: 10px; 
+        }
         .btn-secondary:hover { background-color: #e5e7eb; }
-        .qr-wrapper { margin-top: 25px; display: flex; flex-direction: column; align-items: center; padding: 15px; background: #f9fafb; border-radius: 12px; border: 1px dashed #d1d5db; }
-        #qrcode { display: flex; justify-content: center; align-items: center; min-height: 200px; }
+        .qr-wrapper { 
+            margin-top: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 15px; 
+            background: #f9fafb; 
+            border-radius: 12px; 
+            border: 1px dashed #d1d5db; 
+        }
+        #qrcode { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 200px; 
+        }
         #qrcode svg { max-width: 100%; height: auto; }
-        .note { font-size: 12px; color: #6b7280; text-align: center; margin-top: 15px; line-height: 1.4; }
-        .requisites-info { font-size: 11px; color: #9ca3af; text-align: center; margin-bottom: 15px; background: #f3f4f6; padding: 8px; border-radius: 6px; }
+        .note { 
+            font-size: 12px; 
+            color: #6b7280; 
+            text-align: center; 
+            margin-top: 15px; 
+            line-height: 1.4; 
+        }
+        .requisites-info { 
+            font-size: 11px; 
+            color: #9ca3af; 
+            text-align: center; 
+            margin-bottom: 15px; 
+            background: #f3f4f6; 
+            padding: 8px; 
+            border-radius: 6px; 
+        }
+        .error-msg { 
+            color: #dc2626; 
+            font-size: 13px; 
+            text-align: center; 
+            margin-top: 10px;
+        }
+        .success-msg { 
+            color: #059669; 
+            font-size: 13px; 
+            text-align: center; 
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -28,10 +131,8 @@
 <div class="container">
     <h2>💳 Оплата по QR-коду</h2>
     
-    <!-- Блок с информацией о том, чьи реквизиты зашиты -->
-    <div class="requisites-info">
-        Получатель: <b id="displayPayee">Загрузка...</b><br>
-        Счет: <span id="displayAcc">...</span>
+    <div class="requisites-info" id="requisitesInfo">
+        Загрузка реквизитов...
     </div>
 
     <div class="form-group">
@@ -49,13 +150,15 @@
         <input type="text" id="purpose" placeholder="Например: Оплата по счету №123">
     </div>
     
-    <button onclick="generateQR()">Сформировать QR-код</button>
+    <button id="generateBtn" onclick="generateQR()">Сформировать QR-код</button>
+    
+    <div id="messageBox"></div>
     
     <div class="qr-wrapper">
         <div id="qrcode">
             <span style="color: #9ca3af; font-size: 14px;">QR-код появится здесь</span>
         </div>
-        <div class="note">Отсканируйте этот код в приложении любого банка (СберБанк, Тинькофф, Альфа и др.)<br>Стандарт: ГОСТ Р 56042-2014</div>
+        <div class="note">Отсканируйте этот код в приложении любого банка<br>(СберБанк, Тинькофф, Альфа и др.)<br>Стандарт: ГОСТ Р 56042-2014</div>
     </div>
 
     <button class="btn-secondary" onclick="downloadSelf()">💾 Скачать этот генератор как HTML-файл</button>
@@ -63,37 +166,53 @@
 
 <script>
 // =====================================================================
-// 1. НАСТРОЙКИ: ЗАШИТЫЕ РЕКВИЗИТЫ ПОЛУЧАТЕЛЯ (ИЗМЕНИТЕ ПОД СЕБЯ)
+// 1. РЕКВИЗИТЫ ПОЛУЧАТЕЛЯ — ИЗМЕНИТЕ ПОД СЕБЯ
 // =====================================================================
 const REQUISITES = {
-    name: 'ООО «Тестовая Компания»',       // Название получателя
-    acc: '40702810938000000045',           // Расчетный счет (20 цифр)
-    bank: 'ПАО СБЕРБАНК',                  // Название банка
-    bic: '044525225',                      // БИК (9 цифр)
-    corAcc: '30101810400000000225',        // Корреспондентский счет (20 цифр)
-    inn: '7704400000',                     // ИНН получателя (10 или 12 цифр)
-    kpp: '770401001'                       // КПП (9 цифр, оставьте пустым '', если ИП)
+    name: 'ООО «Тестовая Компания»',
+    acc: '40702810938000000045',
+    bank: 'ПАО СБЕРБАНК',
+    bic: '044525225',
+    corAcc: '30101810400000000225',
+    inn: '7704400000',
+    kpp: '770401001'
 };
 
-// Отображаем часть реквизитов на странице для проверки
-document.getElementById('displayPayee').textContent = REQUISITES.name;
-document.getElementById('displayAcc').textContent = REQUISITES.acc;
+// Отображаем реквизиты при загрузке
+document.getElementById('requisitesInfo').innerHTML = 
+    `Получатель: <b>${REQUISITES.name}</b><br>Счет: ${REQUISITES.acc}`;
 
 // =====================================================================
-// 2. ЛОГИКА ГЕНЕРАЦИИ QR-КОДА
+// 2. ПРОВЕРКА ЗАГРУЗКИ БИБЛИОТЕКИ
+// =====================================================================
+window.addEventListener('load', function() {
+    if (typeof qrcode === 'undefined') {
+        document.getElementById('messageBox').innerHTML = 
+            '<div class="error-msg">⚠️ Библиотека QR-кода не загрузилась. Проверьте интернет-соединение.</div>';
+        document.getElementById('generateBtn').disabled = true;
+    } else {
+        console.log('✅ Библиотека qrcode-generator загружена успешно');
+    }
+});
+
+// =====================================================================
+// 3. ГЕНЕРАЦИЯ QR-КОДА
 // =====================================================================
 function generateQR() {
+    const messageBox = document.getElementById('messageBox');
+    messageBox.innerHTML = '';
+    
     const sumVal = document.getElementById('sum').value.trim();
     const payerName = document.getElementById('payerName').value.trim();
     const purpose = document.getElementById('purpose').value.trim();
 
-    if (!sumVal || parseFloat(sumVal) <= 0) {
-        alert('Пожалуйста, введите корректную сумму платежа.');
+    // Валидация
+    if (!sumVal || isNaN(parseFloat(sumVal)) || parseFloat(sumVal) <= 0) {
+        messageBox.innerHTML = '<div class="error-msg">⚠️ Введите корректную сумму платежа</div>';
         return;
     }
 
     // Формирование строки по ГОСТ Р 56042-2014
-    // Сумма указывается в копейках (целое число)
     const sumInKopecks = Math.round(parseFloat(sumVal) * 100);
     
     let qrString = `ST00012|Name=${REQUISITES.name}|PersonalAcc=${REQUISITES.acc}|BankName=${REQUISITES.bank}|BIC=${REQUISITES.bic}|CorrespAcc=${REQUISITES.corAcc}|PayeeINN=${REQUISITES.inn}`;
@@ -102,34 +221,43 @@ function generateQR() {
         qrString += `|KPP=${REQUISITES.kpp}`;
     }
     if (payerName) {
-        qrString += `|LastName=${payerName}`; // Поле LastName используется большинством банков для полного ФИО плательщика
+        qrString += `|LastName=${payerName}`;
     }
     if (purpose) {
         qrString += `|Purpose=${purpose}`;
     }
     qrString += `|Sum=${sumInKopecks}`;
 
+    console.log(' Строка для QR:', qrString);
+    console.log('📏 Длина строки:', qrString.length, 'символов');
+
     // Очистка контейнера
     const container = document.getElementById("qrcode");
     container.innerHTML = "";
 
     try {
-        // typeNumber = 0 означает автоматический подбор размера матрицы
-        // 'M' (Medium) = 15% коррекции ошибок (оптимально для платежей)
+        // Создаем QR-код с автоматическим выбором размера (typeNumber = 0)
+        // 'M' = 15% коррекции ошибок (оптимально для платежей)
         const qr = qrcode(0, 'M');
         qr.addData(qrString);
         qr.make();
         
-        // Вставляем SVG в контейнер
-        container.innerHTML = qr.createSvgTag(4, 0); // 4 = размер модуля, 0 = отступ
+        // Генерируем SVG (cellSize=4, margin=0)
+        const svgTag = qr.createSvgTag(4, 0);
+        container.innerHTML = svgTag;
+        
+        messageBox.innerHTML = '<div class="success-msg">✅ QR-код успешно сформирован!</div>';
+        console.log('✅ QR-код сгенерирован');
+        
     } catch (e) {
-        container.innerHTML = `<span style="color:red; font-size:14px; text-align:center;">Ошибка генерации:<br>${e.message}</span>`;
-        console.error(e);
+        container.innerHTML = '<span style="color:red; font-size:14px;">Ошибка генерации QR-кода</span>';
+        messageBox.innerHTML = `<div class="error-msg">❌ Ошибка: ${e.message}</div>`;
+        console.error('❌ Ошибка:', e);
     }
 }
 
 // =====================================================================
-// 3. ФУНКЦИЯ СКАЧИВАНИЯ САМОГО СЕБЯ
+// 4. СКАЧИВАНИЕ ФАЙЛА
 // =====================================================================
 function downloadSelf() {
     const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
@@ -141,12 +269,6 @@ function downloadSelf() {
     a.click();
     document.body.removeChild(a);
 }
-
-// =====================================================================
-// 4. ВСТРОЕННАЯ БИБЛИОТЕКА QRCode Generator (Kazuhiko Arase, MIT License)
-// Минифицированная, стабильная версия, не требует интернета.
-// =====================================================================
-var qrcode=function(){var r=function(r,n){if(void 0===r.length)throw new Error(r.length+"/"+n);for(var t=0;t<r.length&&0==r[t];)t++;this.num=new Array(r.length-t+n);for(var e=0;e<r.length-t;e++)this.num[e]=r[t+e]};r.prototype={get:function(r){return this.num[r]},getLength:function(){return this.num.length},multiply:function(n){for(var t=new Array(this.getLength()+n.getLength()-1),e=0;e<this.getLength();e++)for(var i=0;i<n.getLength();i++)t[e+i]^=qrcode.gexp(qrcode.glog(this.get(e))+qrcode.glog(n.get(i)));return new r(t,0)},mod:function(n){if(this.getLength()-n.getLength()<0)return this;for(var t=qrcode.glog(this.get(0))-qrcode.glog(n.get(0)),e=new Array(this.getLength()),i=0;i<this.getLength();i++)e[i]=this.get(i);for(var i=0;i<n.getLength();i++)e[i]^=qrcode.gexp(qrcode.glog(n.get(i))+t);return new r(e,0).mod(n)}},qrcode=function(r,n){if(this._typeNumber=r,this._errorCorrectLevel=n,this._modules=null,this._moduleCount=0,this._dataCache=null,this._dataList=[],this._typeNumber<1||this._typeNumber>40)throw new Error("Bad type number: "+this._typeNumber)},qrcode.prototype={addData:function(n){var t=new function(r){this.mode=4,this.data=r};this._dataList.push(t),this._dataCache=null},isDark:function(r,n){if(r<0||this._moduleCount<=r||n<0||this._moduleCount<=n)throw new Error(r+","+n);return this._modules[r][n]},getModuleCount:function(){return this._moduleCount},make:function(){this._makeImpl(!1,this._getBestMaskPattern())},_makeImpl:function(r,n){this._moduleCount=4*this._typeNumber+17,this._modules=new Array(this._moduleCount);for(var t=0;t<this._moduleCount;t++){this._modules[t]=new Array(this._moduleCount);for(var e=0;e<this._moduleCount;e++)this._modules[t][e]=null}this._setupPositionProbePattern(0,0),this._setupPositionProbePattern(this._moduleCount-7,0),this._setupPositionProbePattern(0,this._moduleCount-7),this._setupPositionAdjustPattern(),this._setupTimingPattern(),this._setupTypeInfo(r,n),this._typeNumber>=7&&this._setupTypeNumber(r),null==this._dataCache&&(this._dataCache=qrcode.createData(this._typeNumber,this._errorCorrectLevel,this._dataList)),this._mapData(this._dataCache,n)},_setupPositionProbePattern:function(r,n){for(var t=-1;t<=7;t++)if(!(r+t<=-1||this._moduleCount<=r+t))for(var e=-1;e<=7;e++)n+e<=-1||this._moduleCount<=n+e||(t>=0&&t<=6&&(0==e||6==e)||e>=0&&e<=6&&(0==t||6==t)||t>=2&&t<=4&&e>=2&&e<=4?this._modules[r+t][n+e]=!0:this._modules[r+t][n+e]=!1)},_getBestMaskPattern:function(){for(var r=0,n=0,t=0;t<8;t++){this._makeImpl(!0,t);var e=qrcode.getLostPoint(this);(0==t||r>e)&&(r=e,n=t)}return n},_createMovieClip:function(r,n,t){var e=r.createEmptyMovieClip(n,t),i=1;this.make();for(var n=0;n<this._modules.length;n++)for(var t=0;t<this._modules.length;t++){var o=this._modules[n][t];o&&(e.beginFill(0,100),e.moveTo(t*i,n*i),e.lineTo((t+1)*i,n*i),e.lineTo((t+1)*i,(n+1)*i),e.lineTo(t*i,(n+1)*i),e.endFill())}return e},_setupTimingPattern:function(){for(var r=8;r<this._moduleCount-8;r++)null==this._modules[r][6]&&(this._modules[r][6]=r%2==0),null==this._modules[6][r]&&(this._modules[6][r]=r%2==0)},_setupPositionAdjustPattern:function(){for(var r=qrcode.getPatternPosition(this._typeNumber),n=0;n<r.length;n++)for(var t=0;t<r.length;t++){var e=r[n],i=r[t];if(null==this._modules[e][i])for(var o=-2;o<=2;o++)for(var a=-2;a<=2;a++)-2==o||2==o||-2==a||2==a||0==o&&0==a?this._modules[e+o][i+a]=!0:this._modules[e+o][i+a]=!1}},_setupTypeNumber:function(r){for(var n=qrcode.getBCHTypeNumber(this._typeNumber),t=0;t<18;t++){var e=!r&&1==(n>>t&1);this._modules[Math.floor(t/3)][t%3+this._moduleCount-8-3]=e}for(var i=0;i<18;i++){var o=!r&&1==(n>>i&1);this._modules[i%3+this._moduleCount-8-3][Math.floor(i/3)]=o}},_setupTypeInfo:function(r,n){for(var t=this._errorCorrectLevel<<3|n,e=qrcode.getBCHTypeInfo(t),i=0;i<15;i++){var o=!r&&1==(e>>i&1);i<6?this._modules[i][8]=o:i<8?this._modules[i+1][8]=o:this._modules[this._moduleCount-15+i][8]=o}for(var a=0;a<15;a++){var s=!r&&1==(e>>a&1);a<8?this._modules[8][this._moduleCount-a-1]=s:a<9?this._modules[8][15-a-1+1]=s:this._modules[8][15-a-1]=s}this._modules[this._moduleCount-8][8]=!r},_mapData:function(r,n){for(var t=-1,e=this._moduleCount-1,i=7,o=0,a=this._moduleCount-1;a>0;a-=2)for(6==a&&a--;;){for(var s=0;s<2;s++)if(null==this._modules[e][a-s]){var h=!1;o<r.length&&(h=1==(r[o]>>>i&1)),qrcode.getMask(n,e,a-s)&&(h=!h),this._modules[e][a-s]=h,i--,-1==i&&(o++,i=7)}if((e+=t)<0||this._moduleCount<=e){e-=t,t=-t;break}}}},qrcode.getMask=function(r,n,t){switch(r){case 0:return(n+t)%2==0;case 1:return n%2==0;case 2:return t%3==0;case 3:return(n+t)%3==0;case 4:return(Math.floor(n/2)+Math.floor(t/3))%2==0;case 5:return n*t%2+n*t%3==0;case 6:return(n*t%2+n*t%3)%2==0;case 7:return((n+t)%2+n*t%3)%2==0;default:throw new Error("bad maskPattern:"+r)}},qrcode.getErrorCorrectPolynomial=function(n){for(var t=new r([1],0),e=0;e<n;e++)t=t.multiply(new r([1,qrcode.gexp(e)],0));return t},qrcode.getLengthInBits=function(r,n){if(n>=1&&n<10)switch(r){case 1:return 10;case 2:return 9;case 4:return 8;case 8:return 8;default:throw new Error("mode:"+r)}else if(n<27)switch(r){case 1:return 12;case 2:return 11;case 4:return 16;case 8:return 10;default:throw new Error("mode:"+r)}else{if(!(n<41))throw new Error("type:"+n);switch(r){case 1:return 14;case 2:return 13;case 4:return 16;case 8:return 12;default:throw new Error("mode:"+r)}}},qrcode.getLostPoint=function(r){for(var n=r.getModuleCount(),t=0,e=0;e<n;e++)for(var i=0;i<n;i++){for(var o=0,a=r.isDark(e,i),s=-1;s<=1;s++)if(!(e+s<0||n<=e+s))for(var h=-1;h<=1;h++)i+h<0||n<=i+h||0==s&&0==h||a==r.isDark(e+s,i+h)&&o++;o>5&&(t+=3+o-5)}for(var e=0;e<n-1;e++)for(var i=0;i<n-1;i++){var l=0;r.isDark(e,i)&&l++,r.isDark(e+1,i)&&l++,r.isDark(e,i+1)&&l++,r.isDark(e+1,i+1)&&l++,0!=l&&4!=l||(t+=3)}for(var e=0;e<n;e++)for(var i=0;i<n-6;i++)r.isDark(e,i)&&!r.isDark(e,i+1)&&r.isDark(e,i+2)&&r.isDark(e,i+3)&&r.isDark(e,i+4)&&!r.isDark(e,i+5)&&r.isDark(e,i+6)&&(t+=40);for(var i=0;i<n;i++)for(var e=0;e<n-6;e++)r.isDark(e,i)&&!r.isDark(e+1,i)&&r.isDark(e+2,i)&&r.isDark(e+3,i)&&r.isDark(e+4,i)&&!r.isDark(e+5,i)&&r.isDark(e+6,i)&&(t+=40);for(var u=0,i=0;i<n;i++)for(var e=0;e<n;e++)r.isDark(e,i)&&u++;var p=Math.abs(100*u/n/n-50)/5;return t+=10*p},qrcode.getPatternPosition=function(r){return[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]][r-1]},qrcode.createData=function(n,t,e){for(var i=qrcode.getRSBlocks(n,t),o=new function(){this.buffer=new Array,this.lengthInBits=0},a=0;a<e.length;a++){var s=e[a];o.put(s.mode,4),o.put(s.data.length,qrcode.getLengthInBits(s.mode,n)),s.write(o)}for(var h=0,a=0;a<i.length;a++)h+=i[a].dataCount;if(o.lengthInBits+4<=8*h&&o.put(0,4);o.lengthInBits%8!=0;)o.putBit(!1);for(;;){if(o.lengthInBits>=8*h)break;if(o.put(236,8),o.lengthInBits>=8*h)break;o.put(17,8)}return qrcode.createBytes(o,i)},qrcode.createBytes=function(n,t){for(var e=0,i=0,o=0,a=new Array(t.length),s=new Array(t.length),h=0;h<t.length;h++){var l=t[h].dataCount,u=t[h].totalCount-l;i=Math.max(i,l),o=Math.max(o,u),a[h]=new Array(l);for(var p=0;p<a[h].length;p++)a[h][p]=255&n.buffer[p+e];e+=l;var c=qrcode.getErrorCorrectPolynomial(u),f=new r(a[h],c.getLength()-1).mod(c);s[h]=new Array(c.getLength()-1);for(var p=0;p<s[h].length;p++){var d=p+f.getLength()-s[h].length;s[h][p]=d>=0?f.get(d):0}}for(var g=0,h=0;h<t.length;h++)g+=t[h].totalCount;for(var v=new Array(g),m=0,p=0;p<i;p++)for(var h=0;h<t.length;h++)p<a[h].length&&(v[m++]=a[h][p]);for(var p=0;p<o;p++)for(var h=0;h<t.length;h++)p<s[h].length&&(v[m++]=s[h][p]);return v},qrcode.glog=function(r){if(r<1)throw new Error("glog("+r+")");return qrcode.LOG_TABLE[r]},qrcode.gexp=function(r){for(;r<0;)r+=255;for(;r>=255;)r-=255;return qrcode.EXP_TABLE[r]};for(var n=new Array(256),t=new Array(256),e=0;e<8;e++)t[e]=1<<e;for(var e=8;e<256;e++)t[e]=t[e-4]^t[e-3]^t[e-2]^t[e-1];for(var e=0;e<255;e++)n[t[e]]=e;return qrcode.LOG_TABLE=n,qrcode.EXP_TABLE=t,qrcode}();
 </script>
 </body>
 </html>
