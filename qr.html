@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор QR-кода для оплаты в казначейство</title>
     
-    <!-- Подключаем локальную библиотеку (файл должен лежать рядом) -->
+    <!-- Подключаем локальную библиотеку с уникальным именем -->
     <script src="qrcode.min.js"></script>
     
     <style>
@@ -34,16 +34,12 @@
             font-size: 22px; 
             margin-bottom: 25px; 
         }
-        
-        /* Горизонтальное расположение */
         .main-layout {
             display: flex;
             gap: 40px;
             align-items: flex-start;
         }
-        .form-column {
-            flex: 1.2;
-        }
+        .form-column { flex: 1.2; }
         .qr-column {
             flex: 1;
             display: flex;
@@ -52,181 +48,57 @@
             position: sticky;
             top: 20px;
         }
-
         .form-group { margin-bottom: 15px; }
-        label { 
-            display: block; 
-            font-size: 13px; 
-            font-weight: 600; 
-            margin-bottom: 5px; 
-            color: #333; 
-        }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #333; }
         input, select, textarea { 
-            width: 100%; 
-            padding: 10px 12px; 
-            border: 1px solid #d1d5db; 
-            border-radius: 8px; 
-            font-size: 15px; 
-            transition: border-color 0.2s; 
-            font-family: inherit;
+            width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; 
+            font-size: 15px; transition: border-color 0.2s; font-family: inherit;
         }
         input:focus, select:focus, textarea:focus { 
-            border-color: #1a73e8; 
-            outline: none; 
-            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); 
+            border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); 
         }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
+        textarea { resize: vertical; min-height: 80px; }
         button { 
-            width: 100%; 
-            padding: 14px; 
-            background-color: #1a73e8; 
-            color: white; 
-            border: none; 
-            border-radius: 8px; 
-            font-size: 16px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            margin-top: 10px; 
+            width: 100%; padding: 14px; background-color: #1a73e8; color: white; border: none; 
+            border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; 
             transition: background 0.2s; 
         }
         button:hover { background-color: #1557b0; }
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-        .btn-secondary { 
-            background-color: #f3f4f6; 
-            color: #374151; 
-            margin-top: 15px; 
-            font-size: 14px; 
-            padding: 12px; 
-        }
+        .btn-secondary { background-color: #f3f4f6; color: #374151; margin-top: 15px; font-size: 14px; padding: 12px; }
         .btn-secondary:hover { background-color: #e5e7eb; }
-        
         .qr-wrapper { 
-            width: 100%;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 20px; 
-            background: #f9fafb; 
-            border-radius: 12px; 
-            border: 1px dashed #d1d5db; 
-            margin-bottom: 15px;
+            width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px; 
+            background: #f9fafb; border-radius: 12px; border: 1px dashed #d1d5db; margin-bottom: 15px;
         }
-        #qrcode { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 250px; 
-        }
+        #qrcode { display: flex; justify-content: center; align-items: center; min-height: 250px; }
         #qrcode svg { max-width: 100%; height: auto; }
-        .note { 
-            font-size: 12px; 
-            color: #6b7280; 
-            text-align: center; 
-            line-height: 1.4; 
-        }
+        .note { font-size: 12px; color: #6b7280; text-align: center; line-height: 1.4; }
         .requisites-info { 
-            font-size: 12px; 
-            color: #4b5563; 
-            text-align: left; 
-            margin-bottom: 20px; 
-            background: #f3f4f6; 
-            padding: 12px; 
-            border-radius: 8px; 
-            border-left: 4px solid #1a73e8;
+            font-size: 12px; color: #4b5563; text-align: left; margin-bottom: 20px; background: #f3f4f6; 
+            padding: 12px; border-radius: 8px; border-left: 4px solid #1a73e8;
         }
-        .error-msg { 
-            color: #dc2626; 
-            font-size: 13px; 
-            text-align: center; 
-            margin-top: 10px;
-            padding: 8px;
-            background: #fef2f2;
-            border-radius: 6px;
-        }
-        .success-msg { 
-            color: #059669; 
-            font-size: 13px; 
-            text-align: center; 
-            margin-top: 10px;
-            padding: 8px;
-            background: #f0fdf4;
-            border-radius: 6px;
-        }
+        .error-msg { color: #dc2626; font-size: 13px; text-align: center; margin-top: 10px; padding: 8px; background: #fef2f2; border-radius: 6px; }
+        .success-msg { color: #059669; font-size: 13px; text-align: center; margin-top: 10px; padding: 8px; background: #f0fdf4; border-radius: 6px; }
         .info-block {
-            width: 100%;
-            background: #eff6ff;
-            border-left: 4px solid #1a73e8;
-            padding: 12px;
-            margin-bottom: 15px;
-            border-radius: 0 8px 8px 0;
-            font-size: 12px;
-            line-height: 1.5;
+            width: 100%; background: #eff6ff; border-left: 4px solid #1a73e8; padding: 12px;
+            margin-bottom: 15px; border-radius: 0 8px 8px 0; font-size: 12px; line-height: 1.5;
         }
-        .info-block h4 {
-            margin: 0 0 8px 0;
-            color: #1e40af;
-            font-size: 13px;
-        }
-        .info-block ul {
-            margin: 0;
-            padding-left: 18px;
-        }
-        .info-block li {
-            margin-bottom: 4px;
-        }
-        .warning {
-            background: #fffbeb;
-            border-left-color: #f59e0b;
-        }
-        .warning h4 {
-            color: #92400e;
-        }
-        .dynamic-fields {
-            background: #f9fafb;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-            border: 1px solid #e5e7eb;
-        }
-        .field-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .field-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        .purpose-preview {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #0369a1;
-            margin-top: 10px;
-        }
-        .purpose-preview strong {
-            display: block;
-            margin-bottom: 5px;
-            color: #0c4a6e;
-        }
+        .info-block h4 { margin: 0 0 8px 0; color: #1e40af; font-size: 13px; }
+        .info-block ul { margin: 0; padding-left: 18px; }
+        .info-block li { margin-bottom: 4px; }
+        .warning { background: #fffbeb; border-left-color: #f59e0b; }
+        .warning h4 { color: #92400e; }
+        .dynamic-fields { background: #f9fafb; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #e5e7eb; }
+        .field-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .field-row .form-group { flex: 1; margin-bottom: 0; }
+        .purpose-preview { background: #f0f9ff; border: 1px solid #bae6fd; padding: 10px; border-radius: 6px; font-size: 12px; color: #0369a1; margin-top: 10px; }
+        .purpose-preview strong { display: block; margin-bottom: 5px; color: #0c4a6e; }
 
         @media (max-width: 768px) {
-            .main-layout {
-                flex-direction: column;
-                gap: 20px;
-            }
-            .qr-column {
-                position: static;
-                width: 100%;
-            }
-            .container {
-                padding: 20px;
-            }
+            .main-layout { flex-direction: column; gap: 20px; }
+            .qr-column { position: static; width: 100%; }
+            .container { padding: 20px; }
         }
     </style>
 </head>
@@ -236,7 +108,6 @@
     <h2>💳 Оплата в казначейство</h2>
     
     <div class="main-layout">
-        <!-- ЛЕВАЯ КОЛОНКА: ФОРМА -->
         <div class="form-column">
             <div class="requisites-info">
                 <strong>Получатель:</strong> <span id="displayPayee">Загрузка...</span><br>
@@ -275,7 +146,6 @@
             <div id="messageBox"></div>
         </div>
 
-        <!-- ПРАВАЯ КОЛОНКА: QR-КОД И ИНФОРМАЦИЯ -->
         <div class="qr-column">
             <div class="qr-wrapper">
                 <div id="qrcode">
@@ -309,9 +179,6 @@
 </div>
 
 <script>
-// =====================================================================
-// 1. РЕКВИЗИТЫ
-// =====================================================================
 const REQUISITES = {
     name: 'УФК по Белгородской области (Арбитражный суд Белгородской области л/с 05261А90710)',
     acc: '03212643000000013226',
@@ -325,17 +192,17 @@ const REQUISITES = {
 document.getElementById('displayPayee').textContent = REQUISITES.name;
 document.getElementById('displayAcc').textContent = REQUISITES.acc;
 
+// ПРОВЕРКА ЗАГРУЗКИ БИБЛИОТЕКИ
 window.addEventListener('load', function() {
-    if (typeof qrcode === 'undefined') {
+    if (typeof QRCodeGen !== 'function') {
         document.getElementById('messageBox').innerHTML = 
-            '<div class="error-msg">⚠️ Файл библиотеки qrcode.min.js не найден. Убедитесь, что он лежит в той же папке, что и этот HTML-файл.</div>';
+            '<div class="error-msg">⚠️ Файл <b>qrcode.min.js</b> не найден или поврежден.<br>Убедитесь, что он лежит в той же папке, и нажмите Ctrl+F5 для сброса кэша.</div>';
         document.getElementById('generateBtn').disabled = true;
+    } else {
+        console.log('✅ Библиотека QRCodeGen успешно загружена');
     }
 });
 
-// =====================================================================
-// 2. ДИНАМИЧЕСКИЕ ПОЛЯ
-// =====================================================================
 function onPaymentTypeChange() {
     const paymentType = document.getElementById('paymentType').value;
     const dynamicFields = document.getElementById('dynamicFields');
@@ -345,57 +212,34 @@ function onPaymentTypeChange() {
     dynamicFields.innerHTML = '';
     purposeField.value = '';
     purposePreview.style.display = 'none';
-    
     if (!paymentType) return;
     
     let html = '<div class="dynamic-fields">';
-    
     if (paymentType === '0002') {
-        html += `
-            <div class="field-row">
-                <div class="form-group">
-                    <label for="contractNumber">Номер гос. контракта:</label>
-                    <input type="text" id="contractNumber" placeholder="Например: 12345" oninput="updatePurpose()">
-                </div>
-                <div class="form-group">
-                    <label for="contractDate">Дата контракта:</label>
-                    <input type="date" id="contractDate" oninput="updatePurpose()">
-                </div>
-            </div>`;
-    } else if (paymentType === '0038' || paymentType === '0028' || paymentType === '0026') {
-        html += `
-            <div class="field-row">
-                <div class="form-group">
-                    <label for="caseNumber">Номер дела (после А08-):</label>
-                    <input type="text" id="caseNumber" placeholder="Например: 12345/2024" oninput="updatePurpose()">
-                </div>
-                <div class="form-group">
-                    <label for="caseDate">Дата судебного акта:</label>
-                    <input type="date" id="caseDate" oninput="updatePurpose()">
-                </div>
-            </div>`;
+        html += `<div class="field-row">
+            <div class="form-group"><label for="contractNumber">Номер гос. контракта:</label><input type="text" id="contractNumber" placeholder="12345" oninput="updatePurpose()"></div>
+            <div class="form-group"><label for="contractDate">Дата контракта:</label><input type="date" id="contractDate" oninput="updatePurpose()"></div>
+        </div>`;
+    } else if (['0038', '0028', '0026'].includes(paymentType)) {
+        html += `<div class="field-row">
+            <div class="form-group"><label for="caseNumber">Номер дела (после А08-):</label><input type="text" id="caseNumber" placeholder="12345/2024" oninput="updatePurpose()"></div>
+            <div class="form-group"><label for="caseDate">Дата судебного акта:</label><input type="date" id="caseDate" oninput="updatePurpose()"></div>
+        </div>`;
     } else if (paymentType === '0030') {
-        html += `
-            <div class="form-group">
-                <label for="bankruptcyDate">Дата заявления о банкротстве:</label>
-                <input type="date" id="bankruptcyDate" oninput="updatePurpose()">
-            </div>`;
+        html += `<div class="form-group"><label for="bankruptcyDate">Дата заявления о банкротстве:</label><input type="date" id="bankruptcyDate" oninput="updatePurpose()"></div>`;
     }
-    
     html += '</div>';
     dynamicFields.innerHTML = html;
 }
 
-// =====================================================================
-// 3. АВТОМАТИЧЕСКОЕ ФОРМИРОВАНИЕ НАЗНАЧЕНИЯ
-// =====================================================================
 function updatePurpose() {
     const paymentType = document.getElementById('paymentType').value;
     const purposeField = document.getElementById('purpose');
     const purposePreview = document.getElementById('purposePreview');
     const purposeText = document.getElementById('purposeText');
-    
     let purpose = '';
+    
+    const formatDate = (d) => d ? d.split('-').reverse().join('.') : '';
     
     if (paymentType === '0002') {
         const num = document.getElementById('contractNumber')?.value || '';
@@ -427,15 +271,6 @@ function updatePurpose() {
     }
 }
 
-function formatDate(dateStr) {
-    if (!dateStr) return '';
-    const parts = dateStr.split('-');
-    return parts.length === 3 ? `${parts[2]}.${parts[1]}.${parts[0]}` : dateStr;
-}
-
-// =====================================================================
-// 4. ГЕНЕРАЦИЯ QR-КОДА
-// =====================================================================
 function generateQR() {
     const messageBox = document.getElementById('messageBox');
     messageBox.innerHTML = '';
@@ -444,39 +279,25 @@ function generateQR() {
     const sumVal = document.getElementById('sum').value.trim();
     const purpose = document.getElementById('purpose').value.trim();
 
-    if (!paymentType) {
-        messageBox.innerHTML = '<div class="error-msg">⚠️ Выберите тип платежа из списка</div>';
-        return;
-    }
-    if (!sumVal || isNaN(parseFloat(sumVal)) || parseFloat(sumVal) <= 0) {
-        messageBox.innerHTML = '<div class="error-msg">⚠️ Введите корректную сумму платежа</div>';
-        return;
-    }
-    if (!purpose) {
-        messageBox.innerHTML = '<div class="error-msg">⚠️ Заполните назначение платежа</div>';
-        return;
-    }
+    if (!paymentType) { messageBox.innerHTML = '<div class="error-msg">⚠️ Выберите тип платежа</div>'; return; }
+    if (!sumVal || isNaN(parseFloat(sumVal)) || parseFloat(sumVal) <= 0) { messageBox.innerHTML = '<div class="error-msg">⚠️ Введите корректную сумму</div>'; return; }
+    if (!purpose) { messageBox.innerHTML = '<div class="error-msg">⚠️ Заполните назначение платежа</div>'; return; }
 
     const sumInKopecks = Math.round(parseFloat(sumVal) * 100);
     
     let qrString = `ST00012|Name=${REQUISITES.name}|PersonalAcc=${REQUISITES.acc}|BankName=${REQUISITES.bank}|BIC=${REQUISITES.bic}|CorrespAcc=${REQUISITES.corAcc}|PayeeINN=${REQUISITES.inn}`;
     if (REQUISITES.kpp) qrString += `|KPP=${REQUISITES.kpp}`;
-    qrString += `|DocIdx=${paymentType}`;
-    qrString += `|Purpose=${purpose}`;
-    qrString += `|Sum=${sumInKopecks}`;
+    qrString += `|DocIdx=${paymentType}|Purpose=${purpose}|Sum=${sumInKopecks}`;
 
     const container = document.getElementById("qrcode");
     container.innerHTML = '<span style="color: #6b7280;">Генерация...</span>';
 
     try {
-        // 0 = автоматический подбор размера, 'M' = 15% коррекции ошибок
-        const qr = qrcode(0, 'M');
+        // ИСПОЛЬЗУЕМ QRCodeGen ВМЕСТО qrcode
+        const qr = QRCodeGen(0, 'M');
         qr.addData(qrString);
         qr.make();
-        
-        // Генерируем SVG (размер ячейки 4, отступ 0)
-        const svg = qr.createSvgTag(4, 0);
-        container.innerHTML = svg;
+        container.innerHTML = qr.createSvgTag(4, 0);
         
         messageBox.innerHTML = `
             <div class="success-msg">✅ QR-код успешно сформирован!</div>
@@ -486,14 +307,11 @@ function generateQR() {
         `;
     } catch (e) {
         container.innerHTML = '<span style="color:red; font-size:14px;">Ошибка</span>';
-        messageBox.innerHTML = `<div class="error-msg">❌ Ошибка генерации: ${e.message}</div>`;
+        messageBox.innerHTML = `<div class="error-msg">❌ Ошибка: ${e.message}</div>`;
         console.error(e);
     }
 }
 
-// =====================================================================
-// 5. СКАЧИВАНИЕ ФАЙЛА
-// =====================================================================
 function downloadSelf() {
     const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
     const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
