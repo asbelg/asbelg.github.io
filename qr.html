@@ -4,65 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор QR-кода для оплаты в казначейство</title>
+
+    <!-- Библиотека загружается ЦЕЛИКОМ с CDN (код не повреждается).
+         Если первый источник недоступен — автоматически подключается второй и третий. -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+    <script>if (typeof qrcode !== 'function') document.write('<script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"><\/script>');</script>
+    <script>if (typeof qrcode !== 'function') document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>');</script>
+
     <style>
         * { box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; 
-            background-color: #f0f2f5; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-            min-height: 100vh;
-            margin: 0;
+            background-color: #f0f2f5; padding: 20px; display: flex; 
+            justify-content: center; min-height: 100vh; margin: 0;
         }
-        .container { 
-            background: #fff; 
-            padding: 30px; 
-            border-radius: 16px; 
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
-            max-width: 950px; 
-            width: 100%;
-        }
+        .container { background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); max-width: 950px; width: 100%; }
         h2 { color: #1a73e8; text-align: center; margin-top: 0; font-size: 22px; margin-bottom: 25px; }
         .main-layout { display: flex; gap: 40px; align-items: flex-start; }
         .form-column { flex: 1.2; }
         .qr-column { flex: 1; display: flex; flex-direction: column; align-items: center; position: sticky; top: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #333; }
-        input, select, textarea { 
-            width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; 
-            font-size: 15px; transition: border-color 0.2s; font-family: inherit;
-        }
-        input:focus, select:focus, textarea:focus { 
-            border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); 
-        }
+        input, select, textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); }
         textarea { resize: vertical; min-height: 80px; }
-        button { 
-            width: 100%; padding: 14px; background-color: #1a73e8; color: white; border: none; 
-            border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; 
-            transition: background 0.2s; 
-        }
+        button { width: 100%; padding: 14px; background-color: #1a73e8; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
         button:hover { background-color: #1557b0; }
         button:disabled { background-color: #9ca3af; cursor: not-allowed; }
         .btn-secondary { background-color: #f3f4f6; color: #374151; margin-top: 15px; font-size: 14px; padding: 12px; }
         .btn-secondary:hover { background-color: #e5e7eb; }
-        .qr-wrapper { 
-            width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px; 
-            background: #f9fafb; border-radius: 12px; border: 1px dashed #d1d5db; margin-bottom: 15px;
-        }
+        .qr-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px; background: #f9fafb; border-radius: 12px; border: 1px dashed #d1d5db; margin-bottom: 15px; }
         #qrcode { display: flex; justify-content: center; align-items: center; min-height: 250px; }
-        #qrcode svg, #qrcode canvas, #qrcode img { max-width: 100%; height: auto; }
+        #qrcode svg { max-width: 100%; height: auto; }
         .note { font-size: 12px; color: #6b7280; text-align: center; line-height: 1.4; }
-        .requisites-info { 
-            font-size: 12px; color: #4b5563; text-align: left; margin-bottom: 20px; background: #f3f4f6; 
-            padding: 12px; border-radius: 8px; border-left: 4px solid #1a73e8;
-        }
+        .requisites-info { font-size: 12px; color: #4b5563; text-align: left; margin-bottom: 20px; background: #f3f4f6; padding: 12px; border-radius: 8px; border-left: 4px solid #1a73e8; }
         .error-msg { color: #dc2626; font-size: 13px; text-align: center; margin-top: 10px; padding: 8px; background: #fef2f2; border-radius: 6px; }
         .success-msg { color: #059669; font-size: 13px; text-align: center; margin-top: 10px; padding: 8px; background: #f0fdf4; border-radius: 6px; }
-        .info-block {
-            width: 100%; background: #eff6ff; border-left: 4px solid #1a73e8; padding: 12px;
-            margin-bottom: 15px; border-radius: 0 8px 8px 0; font-size: 12px; line-height: 1.5;
-        }
+        .info-block { width: 100%; background: #eff6ff; border-left: 4px solid #1a73e8; padding: 12px; margin-bottom: 15px; border-radius: 0 8px 8px 0; font-size: 12px; line-height: 1.5; }
         .info-block h4 { margin: 0 0 8px 0; color: #1e40af; font-size: 13px; }
         .info-block ul { margin: 0; padding-left: 18px; }
         .info-block li { margin-bottom: 4px; }
@@ -73,7 +51,6 @@
         .field-row .form-group { flex: 1; margin-bottom: 0; }
         .purpose-preview { background: #f0f9ff; border: 1px solid #bae6fd; padding: 10px; border-radius: 6px; font-size: 12px; color: #0369a1; margin-top: 10px; }
         .purpose-preview strong { display: block; margin-bottom: 5px; color: #0c4a6e; }
-
         @media (max-width: 768px) {
             .main-layout { flex-direction: column; gap: 20px; }
             .qr-column { position: static; width: 100%; }
@@ -89,13 +66,13 @@
     <div class="main-layout">
         <div class="form-column">
             <div class="requisites-info">
-                <strong>Получатель:</strong> <span id="displayPayee">Загрузка...</span><br>
-                <strong>Счет:</strong> <span id="displayAcc">...</span>
+                <strong>Получатель:</strong> <span id="displayPayee"></span><br>
+                <strong>Счет:</strong> <span id="displayAcc"></span>
             </div>
 
             <div class="form-group">
                 <label for="paymentType">Тип платежа: <span style="color: #dc2626;">*</span></label>
-                <select id="paymentType" onchange="onPaymentTypeChange()" required>
+                <select id="paymentType" onchange="onPaymentTypeChange()">
                     <option value="">— Выберите тип платежа —</option>
                     <option value="0002">НПА 0002 (участие в закупках)</option>
                     <option value="0038">НПА 0038 (залог)</option>
@@ -159,15 +136,7 @@
 
 <script>
 // =====================================================================
-// 1. ВСТРОЕННАЯ БИБЛИОТЕКА QRCode.js (davidshimjs, MIT License)
-// Полная, непро обрезанная версия. Идеально работает с UTF-8 (кириллицей).
-// =====================================================================
-var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this.parsedData=[];for(var b=[],d=0,e=this.data.length;e>d;d++){var f=this.data.charCodeAt(d);f>65536?(b[0]=240|(1835008&f)>>>18,b[1]=128|(258048&f)>>>12,b[2]=128|(4032&f)>>>6,b[3]=128|63&f):f>2048?(b[0]=224|(61440&f)>>>12,b[1]=128|(4032&f)>>>6,b[2]=128|63&f):f>128?(b[0]=192|(1984&f)>>>6,b[1]=128|63&f):b[0]=f,this.parsedData=this.parsedData.concat(b)}this.parsedData.length!=this.data.length&&(this.parsedData.unshift(191),this.parsedData.unshift(187),this.parsedData.unshift(239))}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function i(a,b){if(void 0==a.length)throw new Error(a.length+"/"+b);for(var c=0;c<f;f++){var h=0;switch(b){case d.L:h=l[f][0];break;case d.M:h=l[f][1];break;case d.Q:h=l[f][2];break;case d.H:h=l[f][3]}if(h>=e)break;c++}if(c>l.length)throw new Error("Too long data");return c}function s(a){var b=encodeURI(a).toString().replace(/%[0-9a-fA-F]{2}/g,"a");return b.length+(b.length!=a?3:0)}a.prototype={getLength:function(){return this.parsedData.length},write:function(a){for(var b=0,c=this.parsedData.length;c>b;b++)a.put(this.parsedData[b],8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(0>a||this.moduleCount<=a||0>b||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d=7&&this.setupTypeNumber(a),null==this.dataCache&&(this.dataCache=b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,c)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d?!0:!1)},getBestMaskPattern:function(){for(var a=0,b=0,c=0;8>c;c++){this.makeImpl(!0,c);var d=f.getLostPoint(this);(0==c||a>d)&&(a=d,b=c)}return b},createMovieClip:function(a,b,c){var d=a.createEmptyMovieClip(b,c),e=1;this.make();for(var f=0;f=g;g++)for(var h=-2;2>=h;h++)this.modules[d+g][e+h]=-2==g||2==g||-2==h||2==h||0==g&&0==h?!0:!1}},setupTypeNumber:function(a){for(var b=f.getBCHTypeNumber(this.typeNumber),c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[Math.floor(c/3)][c%3+this.moduleCount-8-3]=d}for(var c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[c%3+this.moduleCount-8-3][Math.floor(c/3)]=d}},setupTypeInfo:function(a,b){for(var c=this.errorCorrectLevel<<3|b,d=f.getBCHTypeInfo(c),e=0;15>e;e++){var g=!a&&1==(1&d>>e);6>e?this.modules[e][8]=g:8>e?this.modules[e+1][8]=g:this.modules[this.moduleCount-15+e][8]=g}for(var e=0;15>e;e++){var g=!a&&1==(1&d>>e);8>e?this.modules[8][this.moduleCount-e-1]=g:9>e?this.modules[8][15-e-1+1]=g:this.modules[8][15-e-1]=g}this.modules[this.moduleCount-8][8]=!a},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,g=0,h=this.moduleCount-1;h>0;h-=2)for(6==h&&h--;;){for(var i=0;2>i;i++)if(null==this.modules[d][h-i]){var j=!1;g>>e));var k=f.getMask(b,d,h-i);k&&(j=!j),this.modules[d][h-i]=j,e--,-1==e&&(g++,e=7)}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}},b.PAD0=236,b.PAD1=17,b.createData=function(a,c,d){for(var e=j.getRSBlocks(a,c),g=new k,h=0;h<8*l)throw new Error("code length overflow. ("+g.getLengthInBits()+">"+8*l+")");for(g.getLengthInBits()+4<=8*l&&g.put(0,4);0!=g.getLengthInBits()%8;)g.putBit(!1);for(;;){if(g.getLengthInBits()>=8*l)break;if(g.put(b.PAD0,8),g.getLengthInBits()>=8*l)break;g.put(b.PAD1,8)}return b.createBytes(g,e)},b.createBytes=function(a,b){for(var c=0,d=0,e=0,g=new Array(b.length),h=new Array(b.length),j=0;j>=0?p.get(q):0}}for(var r=0,m=0;m<m;m++)for(var j=0;j>=0;)b^=f.G15<<f.getBCHDigit(b)-f.getBCHDigit(f.G15);return(1024&a|b)^f.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;f.getBCHDigit(b)-f.getBCHDigit(f.G18)>=0;)b^=f.G18<<f.getBCHDigit(b)-f.getBCHDigit(f.G18);return a<<12|b},getBCHDigit:function(a){for(var b=0;0!=a;)b++,a>>>=1;return b},getPatternPosition:function(a){return f.PATTERN_POSITION_TABLE[a-1]},getMask:function(a,b,c){switch(a){case e.PATTERN000:return 0==(b+c)%2;case e.PATTERN001:return 0==b%2;case e.PATTERN010:return 0==c%3;case e.PATTERN011:return 0==(b+c)%3;case e.PATTERN100:return 0==(Math.floor(b/2)+Math.floor(c/3))%2;case e.PATTERN101:return 0==b*c%2+b*c%3;case e.PATTERN110:return 0==(b*c%2+b*c%3)%2;case e.PATTERN111:return 0==(b*c%3+(b+c)%2)%2;default:throw new Error("bad maskPattern:"+a)}},getErrorCorrectPolynomial:function(a){for(var b=new i([1],0),c=0;a>c;c++)b=b.multiply(new i([1,g.gexp(c)],0));return b},getLengthInBits:function(a,b){if(b>=1&&10>b)switch(a){case c.MODE_NUMBER:return 10;case c.MODE_ALPHA_NUM:return 9;case c.MODE_8BIT_BYTE:return 8;case c.MODE_KANJI:return 8;default:throw new Error("mode:"+a)}else if(27>b)switch(a){case c.MODE_NUMBER:return 12;case c.MODE_ALPHA_NUM:return 11;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 10;default:throw new Error("mode:"+a)}else{if(!(41>b))throw new Error("type:"+b);switch(a){case c.MODE_NUMBER:return 14;case c.MODE_ALPHA_NUM:return 13;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 12;default:throw new Error("mode:"+a)}}},getLostPoint:function(a){for(var b=a.getModuleCount(),c=0,d=0;b>d;d++)for(var e=0;b>e;e++){for(var f=0,g=a.isDark(d,e),h=-1;1>=h;h++)if(!(0>d+h||d+h>=b))for(var i=-1;1>=i;i++)0>e+i||e+i>=b||(0!=h||0!=i)&&g==a.isDark(d+h,e+i)&&f++;f>5&&(c+=3+f-5)}for(var d=0;b-1>d;d++)for(var e=0;b-1>e;e++){var j=0;a.isDark(d,e)&&j++,a.isDark(d+1,e)&&j++,a.isDark(d,e+1)&&j++,a.isDark(d+1,e+1)&&j++,(0==j||4==j)&&(c+=3)}for(var d=0;b>d;d++)for(var e=0;b-6>e;e++)a.isDark(d,e)&&!a.isDark(d,e+1)&&a.isDark(d,e+2)&&a.isDark(d,e+3)&&a.isDark(d,e+4)&&!a.isDark(d,e+5)&&a.isDark(d,e+6)&&(c+=40);for(var e=0;b>e;e++)for(var d=0;b-6>d;d++)a.isDark(d,e)&&!a.isDark(d+1,e)&&a.isDark(d+2,e)&&a.isDark(d+3,e)&&a.isDark(d+4,e)&&!a.isDark(d+5,e)&&a.isDark(d+6,e)&&(c+=40);for(var k=0,e=0;b>e;e++)for(var d=0;b>d;d++)a.isDark(d,e)&&k++;var l=Math.abs(100*k/b/b-50)/5;return c+=10*l}},g={glog:function(a){if(1>a)throw new Error("glog("+a+")");return g.LOG_TABLE[a]},gexp:function(a){for(;0>a;)a+=255;for(;a>=256;)a-=255;return g.EXP_TABLE[a]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)},h=0;8>h;h++)g.EXP_TABLE[h]=1<<h;for(var h=8;256>h;h++)g.EXP_TABLE[h]=g.EXP_TABLE[h-4]^g.EXP_TABLE[h-5]^g.EXP_TABLE[h-6]^g.EXP_TABLE[h-8];for(var h=0;255>h;h++)g.LOG_TABLE[g.EXP_TABLE[h]]=h;i.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=new Array(this.getLength()+a.getLength()-1),c=0;c<f;f++)for(var g=c[3*f+0],h=c[3*f+1],i=c[3*f+2],k=0;g>k;k++)e.push(new j(h,i));return e},j.getRsBlockTable=function(a,b){switch(b){case d.L:return j.RS_BLOCK_TABLE[4*(a-1)+0];case d.M:return j.RS_BLOCK_TABLE[4*(a-1)+1];case d.Q:return j.RS_BLOCK_TABLE[4*(a-1)+2];case d.H:return j.RS_BLOCK_TABLE[4*(a-1)+3];default:return void 0}},k.prototype={get:function(a){var b=Math.floor(a/8);return 1==(1&this.buffer[b]>>>7-a%8)},put:function(a,b){for(var c=0;b>c;c++)this.putBit(1==(1&a>>>b-c-1))},getLengthInBits:function(){return this.length},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0),a&&(this.buffer[b]|=128>>>this.length%8),this.length++}};var l=[[17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],[106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],[230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],[425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250],[644,504,364,280],[718,560,394,310],[792,624,442,338],[858,666,482,382],[929,711,509,403],[1003,779,565,439],[1091,857,611,461],[1171,911,661,511],[1273,997,715,535],[1367,1059,751,593],[1465,1125,805,625],[1528,1190,868,658],[1628,1264,908,698],[1732,1370,982,742],[1840,1452,1030,790],[1952,1538,1112,842],[2068,1628,1168,898],[2188,1722,1228,958],[2303,1809,1283,983],[2431,1911,1351,1051],[2563,1989,1423,1093],[2699,2099,1499,1139],[2809,2213,1579,1219],[2953,2331,1663,1273]],o=function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){function g(a,b){var c=document.createElementNS("http://www.w3.org/2000/svg",a);for(var d in b)b.hasOwnProperty(d)&&c.setAttribute(d,b[d]);return c}var b=this._htOption,c=this._el,d=a.getModuleCount();this.clear();var h=g("svg",{viewBox:"0 0 "+String(d)+" "+String(d),width:"100%",height:"100%",fill:b.colorLight});h.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"),c.appendChild(h),h.appendChild(g("rect",{fill:b.colorDark,width:"1",height:"1",id:"template"}));for(var i=0;d>i;i++)for(var j=0;d>j;j++)if(a.isDark(i,j)){var k=g("use",{x:String(i),y:String(j)});k.setAttributeNS("http://www.w3.org/1999/xlink","href","#template"),h.appendChild(k)}},a.prototype.clear=function(){for(;this._el.hasChildNodes();)this._el.removeChild(this._el.lastChild)},a}();QRCode=function(a,b){if(this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:d.H},"string"==typeof b&&(b={text:b}),b)for(var c in b)this._htOption[c]=b[c];"string"==typeof a&&(a=document.getElementById(a)),this._el=a,this._oQRCode=null,this._oDrawing=new o(this._el,this._htOption),this._htOption.text&&this.makeCode(this._htOption.text)},QRCode.prototype.makeCode=function(a){this._oQRCode=new b(s(a,this._htOption.correctLevel),this._htOption.correctLevel),this._oQRCode.addData(a),this._oQRCode.make(),this._el.title=a,this._oDrawing.draw(this._oQRCode)},QRCode.prototype.clear=function(){this._oDrawing.clear()},QRCode.CorrectLevel=d}();
-</script>
-
-<script>
-// =====================================================================
-// 2. НАСТРОЙКИ И ЛОГИКА ПРИЛОЖЕНИЯ
+// НАСТРОЙКИ И ЛОГИКА
 // =====================================================================
 const REQUISITES = {
     name: 'УФК по Белгородской области (Арбитражный суд Белгородской области л/с 05261А90710)',
@@ -182,15 +151,21 @@ const REQUISITES = {
 document.getElementById('displayPayee').textContent = REQUISITES.name;
 document.getElementById('displayAcc').textContent = REQUISITES.acc;
 
+// Проверка загрузки библиотеки (правильное имя функции: qrcode)
+window.addEventListener('load', function() {
+    if (typeof qrcode !== 'function') {
+        document.getElementById('messageBox').innerHTML =
+            '<div class="error-msg">⚠️ Библиотека QR не загрузилась. Проверьте интернет-соединение и обновите страницу (Ctrl+F5).</div>';
+        document.getElementById('generateBtn').disabled = true;
+    }
+});
+
 function onPaymentTypeChange() {
     const paymentType = document.getElementById('paymentType').value;
     const dynamicFields = document.getElementById('dynamicFields');
-    const purposeField = document.getElementById('purpose');
-    const purposePreview = document.getElementById('purposePreview');
-    
+    document.getElementById('purpose').value = '';
+    document.getElementById('purposePreview').style.display = 'none';
     dynamicFields.innerHTML = '';
-    purposeField.value = '';
-    purposePreview.style.display = 'none';
     if (!paymentType) return;
     
     let html = '<div class="dynamic-fields">';
@@ -216,43 +191,40 @@ function updatePurpose() {
     const purposeField = document.getElementById('purpose');
     const purposePreview = document.getElementById('purposePreview');
     const purposeText = document.getElementById('purposeText');
+    const getVal = (id) => (document.getElementById(id) ? document.getElementById(id).value : '');
+    const formatDate = (d) => d ? d.split('-').reverse().join('.') : '';
     let purpose = '';
     
-    const formatDate = (d) => d ? d.split('-').reverse().join('.') : '';
-    
     if (paymentType === '0002') {
-        const num = document.getElementById('contractNumber')?.value || '';
-        const date = document.getElementById('contractDate')?.value || '';
+        const num = getVal('contractNumber'), date = getVal('contractDate');
         if (num && date) purpose = `Обеспечение исполнения государственного контракта №${num} от ${formatDate(date)}г.`;
     } else if (paymentType === '0038') {
-        const num = document.getElementById('caseNumber')?.value || '';
-        const date = document.getElementById('caseDate')?.value || '';
+        const num = getVal('caseNumber'), date = getVal('caseDate');
         if (num && date) purpose = `Перечисление залога (КоАП РФ) по делу №А08-${num}, судебный акт от ${formatDate(date)}г.`;
     } else if (paymentType === '0028') {
-        const num = document.getElementById('caseNumber')?.value || '';
-        const date = document.getElementById('caseDate')?.value || '';
+        const num = getVal('caseNumber'), date = getVal('caseDate');
         if (num && date) purpose = `Перечисление за экспертизу по делу №А08-${num}, судебный акт от ${formatDate(date)}г., НПА 0028`;
     } else if (paymentType === '0026') {
-        const num = document.getElementById('caseNumber')?.value || '';
-        const date = document.getElementById('caseDate')?.value || '';
+        const num = getVal('caseNumber'), date = getVal('caseDate');
         if (num && date) purpose = `Денежные средства по делу №А08-${num}, судебный акт от ${formatDate(date)}г.`;
     } else if (paymentType === '0030') {
-        const date = document.getElementById('bankruptcyDate')?.value || '';
+        const date = getVal('bankruptcyDate');
         if (date) purpose = `Перечисление по заявлению о несостоятельности (банкротстве) от ${formatDate(date)}г.`;
     }
     
     purposeField.value = purpose;
-    if (purpose) {
-        purposeText.textContent = purpose;
-        purposePreview.style.display = 'block';
-    } else {
-        purposePreview.style.display = 'none';
-    }
+    if (purpose) { purposeText.textContent = purpose; purposePreview.style.display = 'block'; }
+    else { purposePreview.style.display = 'none'; }
 }
 
 function generateQR() {
     const messageBox = document.getElementById('messageBox');
     messageBox.innerHTML = '';
+    
+    if (typeof qrcode !== 'function') {
+        messageBox.innerHTML = '<div class="error-msg">⚠️ Библиотека QR не загрузилась. Обновите страницу (Ctrl+F5).</div>';
+        return;
+    }
     
     const paymentType = document.getElementById('paymentType').value;
     const sumVal = document.getElementById('sum').value.trim();
@@ -269,19 +241,14 @@ function generateQR() {
     qrString += `|DocIdx=${paymentType}|Purpose=${purpose}|Sum=${sumInKopecks}`;
 
     const container = document.getElementById("qrcode");
-    container.innerHTML = '<span style="color: #6b7280;">Генерация...</span>';
 
     try {
-        // Используем надежную библиотеку qrcodejs, которая сама подбирает размер и отлично работает с UTF-8
-        container.innerHTML = ""; // Очищаем перед генерацией
-        new QRCode(container, {
-            text: qrString,
-            width: 250,
-            height: 250,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-        });
+        // typeNumber = 0 → библиотека САМА подберёт нужный размер (ошибки typeNumber исключены)
+        // 'M' → стандартный уровень коррекции ошибок для платежных QR
+        const qr = qrcode(0, 'M');
+        qr.addData(qrString);   // библиотека сама кодирует кириллицу в UTF-8
+        qr.make();
+        container.innerHTML = qr.createSvgTag(4, 16); // размер модуля 4px, отступ 16px
         
         messageBox.innerHTML = `
             <div class="success-msg">✅ QR-код успешно сформирован!</div>
@@ -290,8 +257,8 @@ function generateQR() {
             </div>
         `;
     } catch (e) {
-        container.innerHTML = '<span style="color:red; font-size:14px;">Ошибка</span>';
-        messageBox.innerHTML = `<div class="error-msg">❌ Ошибка: ${e.message}</div>`;
+        container.innerHTML = '<span style="color:red; font-size:14px;">Ошибка генерации</span>';
+        messageBox.innerHTML = `<div class="error-msg">❌ Ошибка: ${e.message || e}</div>`;
         console.error(e);
     }
 }
