@@ -160,7 +160,6 @@
 <script>
 // =====================================================================
 // 1. ВСТРОЕННАЯ БИБЛИОТЕКА QRCode Generator (Kazuhiko Arase, MIT License)
-// Гарантированно работает, поддерживает UTF-8, не требует внешних файлов.
 // =====================================================================
 var qrcode = function() {
   var QRMode = { MODE_NUMBER: 1, MODE_ALPHA_NUM: 2, MODE_8BIT_BYTE: 4, MODE_KANJI: 8 };
@@ -324,8 +323,8 @@ function generateQR() {
     container.innerHTML = '<span style="color: #6b7280;">Генерация...</span>';
 
     try {
-        // 0 = автоматический подбор размера, 'M' = 15% коррекции ошибок
-        const qr = qrcode(0, 'M');
+        // ИСПРАВЛЕНО: используем .create(), так как qrcode - это объект с методом create
+        const qr = qrcode.create(0, 'M');
         qr.addData(qrString);
         qr.make();
         container.innerHTML = qr.createSvgTag(4, 0);
