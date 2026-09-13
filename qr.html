@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор QR-кода для оплаты в казначейство</title>
 
-    <!-- Библиотека загружается ЦЕЛИКОМ с CDN (код не повреждается).
-         Если первый источник недоступен — автоматически подключается второй и третий. -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
     <script>if (typeof qrcode !== 'function') document.write('<script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"><\/script>');</script>
     <script>if (typeof qrcode !== 'function') document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>');</script>
@@ -116,6 +114,7 @@
                     <li>Реквизиты получателя и банка</li>
                     <li>Сумма платежа</li>
                     <li>Код НПА (поле 22)</li>
+                    <li>ОКТМО и КБК</li>
                     <li>Назначение платежа</li>
                     <li><strong>ФИО плательщика</strong> (из профиля в приложении)</li>
                 </ul>
@@ -145,13 +144,20 @@ const REQUISITES = {
     bic: '012202102',
     corAcc: '40102810745370000024',
     inn: '3124018052',
-    kpp: '312301001'
+    kpp: '312301001',
+    oktmo: '14701000',  // Добавлено ОКТМО
+    cbc: '0'            // Добавлено КБК
 };
 
 document.getElementById('displayPayee').textContent = REQUISITES.name;
 document.getElementById('displayAcc').textContent = REQUISITES.acc;
 
-// Проверка загрузки библиотеки (правильное имя функции: qrcode)
+// Функция для явного преобразования строки в UTF-8 байты
+// Это решает проблему с кодировкой кириллицы
+function toUTF8(str) {
+    return unescape(encodeURIComponent(str));
+}
+
 window.addEventListener('load', function() {
     if (typeof qrcode !== 'function') {
         document.getElementById('messageBox').innerHTML =
@@ -236,24 +242,29 @@ function generateQR() {
 
     const sumInKopecks = Math.round(parseFloat(sumVal) * 100);
     
+    // Формируем строку по ГОСТ Р 56042-2014 с ОКТМО и КБК
     let qrString = `ST00012|Name=${REQUISITES.name}|PersonalAcc=${REQUISITES.acc}|BankName=${REQUISITES.bank}|BIC=${REQUISITES.bic}|CorrespAcc=${REQUISITES.corAcc}|PayeeINN=${REQUISITES.inn}`;
     if (REQUISITES.kpp) qrString += `|KPP=${REQUISITES.kpp}`;
-    qrString += `|DocIdx=${paymentType}|Purpose=${purpose}|Sum=${sumInKopecks}`;
+    qrString += `|DocIdx=${paymentType}`;
+    qrString += `|Purpose=${purpose}`;
+    qrString += `|Sum=${sumInKopecks}`;
+    qrString += `|OKTMO=${REQUISITES.oktmo}`;  // Добавляем ОКТМО
+    qrString += `|CBC=${REQUISITES.cbc}`;        // Добавляем КБК
 
     const container = document.getElementById("qrcode");
 
     try {
-        // typeNumber = 0 → библиотека САМА подберёт нужный размер (ошибки typeNumber исключены)
-        // 'M' → стандартный уровень коррекции ошибок для платежных QR
         const qr = qrcode(0, 'M');
-        qr.addData(qrString);   // библиотека сама кодирует кириллицу в UTF-8
+        // ВАЖНО: преобразуем строку в UTF-8 байты для корректной кодировки кириллицы
+        qr.addData(toUTF8(qrString));
         qr.make();
-        container.innerHTML = qr.createSvgTag(4, 16); // размер модуля 4px, отступ 16px
+        container.innerHTML = qr.createSvgTag(4, 16);
         
         messageBox.innerHTML = `
             <div class="success-msg">✅ QR-код успешно сформирован!</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 8px; text-align: center;">
-                Код НПА: <b>${paymentType}</b> | Сумма: <b>${sumVal} ₽</b>
+                Код НПА: <b>${paymentType}</b> | Сумма: <b>${sumVal} ₽</b><br>
+                ОКТМО: <b>${REQUISITES.oktmo}</b> | КБК: <b>${REQUISITES.cbc}</b>
             </div>
         `;
     } catch (e) {
