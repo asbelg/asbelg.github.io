@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Генератор QR-кода для оплаты в казначейство</title>
-    
-    <!-- Подключаем библиотеку QR-кода -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
-    
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -24,7 +21,7 @@
             padding: 25px; 
             border-radius: 16px; 
             box-shadow: 0 8px 24px rgba(0,0,0,0.08); 
-            max-width: 480px; 
+            max-width: 520px; 
             width: 100%;
             align-self: flex-start;
         }
@@ -43,18 +40,23 @@
             margin-bottom: 5px; 
             color: #333; 
         }
-        input, select { 
+        input, select, textarea { 
             width: 100%; 
             padding: 10px 12px; 
             border: 1px solid #d1d5db; 
             border-radius: 8px; 
             font-size: 15px; 
             transition: border-color 0.2s; 
+            font-family: inherit;
         }
-        input:focus, select:focus { 
+        input:focus, select:focus, textarea:focus { 
             border-color: #1a73e8; 
             outline: none; 
             box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1); 
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
         }
         button { 
             width: 100%; 
@@ -158,6 +160,36 @@
         .warning h4 {
             color: #92400e;
         }
+        .dynamic-fields {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 1px solid #e5e7eb;
+        }
+        .field-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .field-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .purpose-preview {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #0369a1;
+            margin-top: 10px;
+        }
+        .purpose-preview strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #0c4a6e;
+        }
     </style>
 </head>
 <body>
@@ -170,16 +202,18 @@
     </div>
 
     <div class="form-group">
-        <label for="npaCode">Код НПА (нормативного акта): <span style="color: #dc2626;">*</span></label>
-        <select id="npaCode" required>
-            <option value="">— Выберите код НПА —</option>
-            <option value="0002">0002</option>
-            <option value="0038">0038</option>
-            <option value="0028">0028</option>
-            <option value="0026">0026</option>
-            <option value="0030">0030</option>
+        <label for="paymentType">Тип платежа: <span style="color: #dc2626;">*</span></label>
+        <select id="paymentType" onchange="onPaymentTypeChange()" required>
+            <option value="">— Выберите тип платежа —</option>
+            <option value="0002">НПА 0002 (участие в закупках)</option>
+            <option value="0038">НПА 0038 (залог)</option>
+            <option value="0028">НПА 0028 (возмещение судебных издержек)</option>
+            <option value="0026">НПА 0026 (экспертиза)</option>
+            <option value="0030">НПА 0030 (банкротство)</option>
         </select>
     </div>
+
+    <div id="dynamicFields"></div>
 
     <div class="form-group">
         <label for="sum">Сумма платежа (₽): <span style="color: #dc2626;">*</span></label>
@@ -187,13 +221,12 @@
     </div>
     
     <div class="form-group">
-        <label for="payerName">ФИО плательщика: <span style="color: #dc2626;">*</span></label>
-        <input type="text" id="payerName" placeholder="Иванов Иван Иванович">
-    </div>
-    
-    <div class="form-group">
-        <label for="purpose">Назначение платежа:</label>
-        <input type="text" id="purpose" placeholder="Например: Оплата по договору №123">
+        <label for="purpose">Назначение платежа: <span style="color: #dc2626;">*</span></label>
+        <textarea id="purpose" placeholder="Назначение платежа будет сформировано автоматически"></textarea>
+        <div class="purpose-preview" id="purposePreview" style="display: none;">
+            <strong>Предварительный просмотр:</strong>
+            <span id="purposeText"></span>
+        </div>
     </div>
     
     <button id="generateBtn" onclick="generateQR()">Сформировать QR-код</button>
@@ -207,18 +240,20 @@
         <div class="note">Отсканируйте этот код в приложении любого банка<br>(СберБанк, Тинькофф, Альфа и др.)<br>Стандарт: ГОСТ Р 56042-2014</div>
     </div>
 
-    <!-- Информация о том, где указывать код НПА -->
     <div class="info-block">
-        <h4>📋 Где указывать код НПА при оплате:</h4>
+        <h4> Что заполнится автоматически при сканировании:</h4>
         <ul>
-            <li><b>Платежное поручение</b> — поле «22»</li>
-            <li><b>Объявление на взнос наличными</b> (форма 0402001) — реквизит «Источник поступления»</li>
-            <li><b>Банкомат / пункт выдачи наличных</b> — реквизит «код цели (аналитический код)»</li>
+            <li>✅ Реквизиты получателя (название, счет, банк, БИК, ИНН, КПП)</li>
+            <li>✅ Сумма платежа</li>
+            <li>✅ Код НПА (поле 22)</li>
+            <li>✅ Назначение платежа</li>
+            <li>✅ <strong>ФИО плательщика</strong> — из профиля в банковском приложении</li>
+            <li>✅ <strong>Счет плательщика</strong> — вы выберете в приложении</li>
         </ul>
     </div>
 
     <div class="info-block warning">
-        <h4>️ Важная информация:</h4>
+        <h4>⚠️ Важная информация:</h4>
         <ul>
             <li><b>Депозитный счет НЕ ИМЕЕТ реквизита КБК</b> — это не бюджетный счет</li>
             <li>При запросе КБК указывайте <b>«0»</b></li>
@@ -242,38 +277,198 @@ const REQUISITES = {
     kpp: '770401001'
 };
 
-// Отображаем реквизиты при загрузке
 document.getElementById('requisitesInfo').innerHTML = 
     `Получатель: <b>${REQUISITES.name}</b><br>Счет: ${REQUISITES.acc}`;
 
-// =====================================================================
-// 2. ПРОВЕРКА ЗАГРУЗКИ БИБЛИОТЕКИ
-// =====================================================================
 window.addEventListener('load', function() {
     if (typeof qrcode === 'undefined') {
         document.getElementById('messageBox').innerHTML = 
             '<div class="error-msg">⚠️ Библиотека QR-кода не загрузилась. Проверьте интернет-соединение.</div>';
         document.getElementById('generateBtn').disabled = true;
-    } else {
-        console.log('✅ Библиотека qrcode-generator загружена успешно');
     }
 });
 
 // =====================================================================
-// 3. ГЕНЕРАЦИЯ QR-КОДА
+// 2. ДИНАМИЧЕСКИЕ ПОЛЯ ДЛЯ РАЗНЫХ ТИПОВ ПЛАТЕЖЕЙ
+// =====================================================================
+function onPaymentTypeChange() {
+    const paymentType = document.getElementById('paymentType').value;
+    const dynamicFields = document.getElementById('dynamicFields');
+    const purposeField = document.getElementById('purpose');
+    const purposePreview = document.getElementById('purposePreview');
+    
+    dynamicFields.innerHTML = '';
+    purposeField.value = '';
+    purposePreview.style.display = 'none';
+    
+    if (!paymentType) return;
+    
+    let html = '<div class="dynamic-fields">';
+    
+    switch(paymentType) {
+        case '0002':
+            html += `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label for="contractNumber">Номер гос. контракта:</label>
+                        <input type="text" id="contractNumber" placeholder="Например: 12345" oninput="updatePurpose()">
+                    </div>
+                    <div class="form-group">
+                        <label for="contractDate">Дата контракта:</label>
+                        <input type="date" id="contractDate" oninput="updatePurpose()">
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case '0038':
+            html += `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label for="caseNumber">Номер дела (после А08-):</label>
+                        <input type="text" id="caseNumber" placeholder="Например: 12345/2024" oninput="updatePurpose()">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseDate">Дата судебного акта:</label>
+                        <input type="date" id="caseDate" oninput="updatePurpose()">
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case '0028':
+            html += `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label for="caseNumber">Номер дела (после А08-):</label>
+                        <input type="text" id="caseNumber" placeholder="Например: 12345/2024" oninput="updatePurpose()">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseDate">Дата судебного акта:</label>
+                        <input type="date" id="caseDate" oninput="updatePurpose()">
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case '0026':
+            html += `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label for="caseNumber">Номер дела (после А08-):</label>
+                        <input type="text" id="caseNumber" placeholder="Например: 12345/2024" oninput="updatePurpose()">
+                    </div>
+                    <div class="form-group">
+                        <label for="caseDate">Дата судебного акта:</label>
+                        <input type="date" id="caseDate" oninput="updatePurpose()">
+                    </div>
+                </div>
+            `;
+            break;
+            
+        case '0030':
+            html += `
+                <div class="form-group">
+                    <label for="bankruptcyDate">Дата заявления о банкротстве:</label>
+                    <input type="date" id="bankruptcyDate" oninput="updatePurpose()">
+                </div>
+            `;
+            break;
+    }
+    
+    html += '</div>';
+    dynamicFields.innerHTML = html;
+}
+
+// =====================================================================
+// 3. АВТОМАТИЧЕСКОЕ ФОРМИРОВАНИЕ НАЗНАЧЕНИЯ ПЛАТЕЖА
+// =====================================================================
+function updatePurpose() {
+    const paymentType = document.getElementById('paymentType').value;
+    const purposeField = document.getElementById('purpose');
+    const purposePreview = document.getElementById('purposePreview');
+    const purposeText = document.getElementById('purposeText');
+    
+    let purpose = '';
+    
+    switch(paymentType) {
+        case '0002':
+            const contractNumber = document.getElementById('contractNumber')?.value || '';
+            const contractDate = document.getElementById('contractDate')?.value || '';
+            if (contractNumber && contractDate) {
+                const formattedDate = formatDate(contractDate);
+                purpose = `Обеспечение исполнения государственного контракта №${contractNumber} от ${formattedDate}г.`;
+            }
+            break;
+            
+        case '0038':
+            const caseNumber38 = document.getElementById('caseNumber')?.value || '';
+            const caseDate38 = document.getElementById('caseDate')?.value || '';
+            if (caseNumber38 && caseDate38) {
+                const formattedDate = formatDate(caseDate38);
+                purpose = `Перечисление залога (КоАП РФ) по делу №А08-${caseNumber38}, судебный акт от ${formattedDate}г.`;
+            }
+            break;
+            
+        case '0028':
+            const caseNumber28 = document.getElementById('caseNumber')?.value || '';
+            const caseDate28 = document.getElementById('caseDate')?.value || '';
+            if (caseNumber28 && caseDate28) {
+                const formattedDate = formatDate(caseDate28);
+                purpose = `Перечисление за экспертизу по делу №А08-${caseNumber28}, судебный акт от ${formattedDate}г., НПА 0028`;
+            }
+            break;
+            
+        case '0026':
+            const caseNumber26 = document.getElementById('caseNumber')?.value || '';
+            const caseDate26 = document.getElementById('caseDate')?.value || '';
+            if (caseNumber26 && caseDate26) {
+                const formattedDate = formatDate(caseDate26);
+                purpose = `Денежные средства по делу №А08-${caseNumber26}, судебный акт от ${formattedDate}г.`;
+            }
+            break;
+            
+        case '0030':
+            const bankruptcyDate = document.getElementById('bankruptcyDate')?.value || '';
+            if (bankruptcyDate) {
+                const formattedDate = formatDate(bankruptcyDate);
+                purpose = `Перечисление по заявлению о несостоятельности (банкротстве) от ${formattedDate}г.`;
+            }
+            break;
+    }
+    
+    purposeField.value = purpose;
+    
+    if (purpose) {
+        purposeText.textContent = purpose;
+        purposePreview.style.display = 'block';
+    } else {
+        purposePreview.style.display = 'none';
+    }
+}
+
+// Форматирование даты из YYYY-MM-DD в DD.MM.YYYY
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    return `${parts[2]}.${parts[1]}.${parts[0]}`;
+}
+
+// =====================================================================
+// 4. ГЕНЕРАЦИЯ QR-КОДА
 // =====================================================================
 function generateQR() {
     const messageBox = document.getElementById('messageBox');
     messageBox.innerHTML = '';
     
-    const npaCode = document.getElementById('npaCode').value.trim();
+    const paymentType = document.getElementById('paymentType').value;
     const sumVal = document.getElementById('sum').value.trim();
-    const payerName = document.getElementById('payerName').value.trim();
     const purpose = document.getElementById('purpose').value.trim();
 
     // Валидация
-    if (!npaCode) {
-        messageBox.innerHTML = '<div class="error-msg">⚠️ Выберите код НПА из списка</div>';
+    if (!paymentType) {
+        messageBox.innerHTML = '<div class="error-msg">️ Выберите тип платежа из списка</div>';
         return;
     }
     
@@ -282,61 +477,48 @@ function generateQR() {
         return;
     }
     
-    if (!payerName) {
-        messageBox.innerHTML = '<div class="error-msg">⚠️ Введите ФИО плательщика</div>';
+    if (!purpose) {
+        messageBox.innerHTML = '<div class="error-msg">⚠️ Заполните назначение платежа</div>';
         return;
     }
 
     // Формирование строки по ГОСТ Р 56042-2014
     const sumInKopecks = Math.round(parseFloat(sumVal) * 100);
     
-    // Основная строка QR-кода
     let qrString = `ST00012|Name=${REQUISITES.name}|PersonalAcc=${REQUISITES.acc}|BankName=${REQUISITES.bank}|BIC=${REQUISITES.bic}|CorrespAcc=${REQUISITES.corAcc}|PayeeINN=${REQUISITES.inn}`;
     
-    // Добавляем КПП если есть
     if (REQUISITES.kpp) {
         qrString += `|KPP=${REQUISITES.kpp}`;
     }
     
-    // Добавляем код НПА в поле DocIdx (индекс документа)
-    qrString += `|DocIdx=${npaCode}`;
+    // Код НПА в поле DocIdx (поле 22)
+    qrString += `|DocIdx=${paymentType}`;
     
-    // Добавляем ФИО плательщика
-    if (payerName) {
-        qrString += `|LastName=${payerName}`;
-    }
+    // Назначение платежа
+    qrString += `|Purpose=${purpose}`;
     
-    // Добавляем назначение платежа
-    if (purpose) {
-        qrString += `|Purpose=${purpose}`;
-    }
-    
-    // Добавляем сумму в копейках
+    // Сумма в копейках
     qrString += `|Sum=${sumInKopecks}`;
 
     console.log('📝 Строка для QR:', qrString);
     console.log('📏 Длина строки:', qrString.length, 'символов');
-    console.log('🔢 Код НПА:', npaCode);
+    console.log(' Код НПА:', paymentType);
 
-    // Очистка контейнера
     const container = document.getElementById("qrcode");
     container.innerHTML = "";
 
     try {
-        // Создаем QR-код с автоматическим выбором размера (typeNumber = 0)
-        // 'M' = 15% коррекции ошибок (оптимально для платежей)
         const qr = qrcode(0, 'M');
         qr.addData(qrString);
         qr.make();
         
-        // Генерируем SVG (cellSize=4, margin=0)
         const svgTag = qr.createSvgTag(4, 0);
         container.innerHTML = svgTag;
         
         messageBox.innerHTML = `
             <div class="success-msg">✅ QR-код успешно сформирован!</div>
             <div style="font-size: 11px; color: #6b7280; margin-top: 8px; text-align: center;">
-                Код НПА: <b>${npaCode}</b> | Сумма: <b>${sumVal} ₽</b>
+                Код НПА: <b>${paymentType}</b> | Сумма: <b>${sumVal} ₽</b>
             </div>
         `;
         console.log('✅ QR-код сгенерирован');
@@ -344,12 +526,12 @@ function generateQR() {
     } catch (e) {
         container.innerHTML = '<span style="color:red; font-size:14px;">Ошибка генерации QR-кода</span>';
         messageBox.innerHTML = `<div class="error-msg">❌ Ошибка: ${e.message}</div>`;
-        console.error(' Ошибка:', e);
+        console.error('❌ Ошибка:', e);
     }
 }
 
 // =====================================================================
-// 4. СКАЧИВАНИЕ ФАЙЛА
+// 5. СКАЧИВАНИЕ ФАЙЛА
 // =====================================================================
 function downloadSelf() {
     const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
