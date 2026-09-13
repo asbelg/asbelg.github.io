@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Диагностика: какой тег читает Сбер как "код НПА"</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script>if (typeof qrcode !== 'function') document.write('<script src="https://unpkg.com/qrcode-generator@1.4.4/qrcode.js"><\/script>');</script>
+<style>
+  body { font-family: Arial, sans-serif; background:#f0f2f5; padding:15px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:15px; }
+  .card { background:#fff; border-radius:12px; padding:15px; text-align:center; box-shadow:0 4px 12px rgba(0,0,0,.08); }
+  .card h3 { margin:0 0 8px; font-size:16px; color:#1a73e8; }
+  .card p { margin:0 0 10px; font-size:11px; color:#6b7280; }
+  .qr { display:flex; justify-content:center; }
+  .qr svg { width:180px; height:180px; }
+  h1 { font-size:18px; text-align:center; }
+  .hint { font-size:13px; text-align:center; color:#444; margin-bottom:20px; }
+</style>
+</head>
+<body>
+<h1>🔬 Диагностика тега «код НПА» для СберБанка</h1>
+<div class="hint">Сканируйте каждый QR по очереди в СберБанк Онлайн и смотрите,<br>в какое поле упадёт значение <b>0002</b>. Результат запишите.</div>
+<div class="grid" id="grid"></div>
+<script>
+const R = {
+  name: 'УФК по Белгородской области (Арбитражный суд Белгородской области л/с 05261А90710)',
+  acc: '03212643000000013226',
+  bank: 'ОКЦ № 1 ВВГУ Банка России // УФК по Нижегородской области, г. Нижний Новгород',
+  bic: '012202102', corAcc: '40102810745370000024', inn: '3124018052', kpp: '312301001'
+};
+function toUTF8(s){ return unescape(encodeURIComponent(s)); }
+
+// Кандидаты: тег, которым передаём код НПА 0002
+const VARIANTS = [
+  { tag: 'UIN',         note: 'контроль: должно упасть в «УИН»' },
+  { tag: 'DocIdx',      note: 'индекс документа' },
+  { tag: 'NPA',         note: 'прямое имя NPA' },
+  { tag: 'TaxPaytKind', note: 'тип платежа (поле 101)' },
+  { tag: 'Kod',         note: 'транслит Kod' },
+  { tag: 'Code',        note: 'транслит Code' }
+];
+
+const grid = document.getElementById('grid');
+VARIANTS.forEach((v, i) => {
+  let str = `ST00012|Name=${R.name}|PersonalAcc=${R.acc}|BankName=${R.bank}|BIC=${R.bic}|CorrespAcc=${R.corAcc}|PayeeINN=${R.inn}|KPP=${R.kpp}`;
+  str += `|${v.tag}=0002`;
+  str += `|Purpose=ТЕСТ: проверка тега ${v.tag}|Sum=100`;
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<h3>Вариант ${i+1}: тег ${v.tag}</h3><p>${v.note}</p><div class="qr" id="qr${i}"></div>`;
+  grid.appendChild(card);
+
+  const qr = qrcode(0, 'M');
+  qr.addData(toUTF8(str));
+  qr.make();
+  card.querySelector('.qr').innerHTML = qr.createSvgTag(3, 12);
+});
+</script>
+</body>
+</html>
