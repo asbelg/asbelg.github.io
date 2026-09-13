@@ -245,7 +245,8 @@ function generateQR() {
     // Формируем строку по ГОСТ Р 56042-2014 с ОКТМО и КБК
     let qrString = `ST00012|Name=${REQUISITES.name}|PersonalAcc=${REQUISITES.acc}|BankName=${REQUISITES.bank}|BIC=${REQUISITES.bic}|CorrespAcc=${REQUISITES.corAcc}|PayeeINN=${REQUISITES.inn}`;
     if (REQUISITES.kpp) qrString += `|KPP=${REQUISITES.kpp}`;
-    qrString += `|DocIdx=${paymentType}`;
+    qrString += `|Code=${paymentType}`;    // По ГОСТ Р 56042-2014
+    qrString += `|Kod=${paymentType}`;     // Альтернативное имя (некоторые банки)
     qrString += `|Purpose=${purpose}`;
     qrString += `|Sum=${sumInKopecks}`;
     qrString += `|OKTMO=${REQUISITES.oktmo}`;  // Добавляем ОКТМО
